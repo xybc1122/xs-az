@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fillViewport="true"
+    android:background="#f1f1f1">
+    <com.qmuiteam.qmui.layout.QMUILinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="@dimen/dp_10"
+        android:background="@color/qmui_config_color_white"
+        android:orientation="vertical"
+        app:qmui_showBorderOnlyBeforeL="true"
+        app:qmui_radius="@dimen/dp_4">
+
+    <SurfaceView
+        android:id="@+id/sur_player"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_220"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_10"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:layout_marginRight="@dimen/dp_10"
+        android:layout_marginBottom="@dimen/dp_10"
+        android:background="@color/qmui_config_color_black" />
+    <LinearLayout
+        android:id="@+id/play_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sur_player"
+        android:layout_margin="@dimen/dp_10"
+        android:orientation="horizontal">
+
+
+        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+            android:id="@+id/start"
+            android:layout_marginRight="@dimen/dp_6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="@dimen/dp_10"
+            android:text="播放"
+            app:qmui_radius="@dimen/dp_4"/>
+
+        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+            android:id="@+id/stop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="暂停"
+            app:qmui_radius="4dp"/>
+    </LinearLayout>
+    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+        android:layout_below="@+id/play_layout"
+        android:id="@+id/top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:text="向上↑"
+        app:qmui_radius="@dimen/dp_4"/>
+
+
+    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+        android:layout_below="@+id/top"
+        android:id="@+id/left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:text="←左转"
+        android:layout_marginLeft="@dimen/dp_100"
+        app:qmui_radius="@dimen/dp_4"/>
+    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+        android:layout_below="@+id/top"
+        android:id="@+id/right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:text="右转→"
+        android:layout_marginRight="@dimen/dp_100"
+        android:layout_alignParentRight="true"
+        app:qmui_radius="@dimen/dp_4"/>
+    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+        android:layout_below="@+id/left"
+        android:id="@+id/bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:text="向下↓"
+        app:qmui_radius="@dimen/dp_4"/>
+
+    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+        android:id="@+id/login_out"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:layout_marginRight="@dimen/dp_10"
+        android:layout_marginBottom="@dimen/dp_10"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:text="注销设备"
+        app:qmui_radius="@dimen/dp_4"/>
+
+
+</com.qmuiteam.qmui.layout.QMUILinearLayout>
+
+</RelativeLayout>

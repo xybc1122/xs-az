@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">旭视智能安防</string>
+    <string name="start_button_login">登陆</string>
+    <string name="title">旭视智能安防</string>
+    <string name="port">端口</string>
+    <string name="account">账号</string>
+    <string name="password">密码</string>
+    <string name="login">连接</string>
+    <string name="ip">ip</string>
+</resources>
