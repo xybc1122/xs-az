@@ -39,4 +39,5 @@ dependencies {
     implementation files('libs/HCNetSDK.jar')
     implementation files('libs/jna.jar')
     implementation  'com.qmuiteam:qmui:1.4.4'
+
 }

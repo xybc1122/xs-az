@@ -4,156 +4,161 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:filterTouchesWhenObscured="true"
-    android:background="#f1f1f1">
+    android:background="@color/qmui_config_color_10_white"
+    android:padding="@dimen/dp_10"
+    android:gravity="center">
 
-    <com.qmuiteam.qmui.layout.QMUILinearLayout
+
+    <SurfaceView
+        android:id="@+id/Sur_Player"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="@dimen/dp_10"
-        android:background="@color/qmui_config_color_white"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:qmui_showBorderOnlyBeforeL="true"
-        app:qmui_radius="@dimen/dp_4">
+        android:layout_height="330dp"
+        android:background="#0000ff00" />
+    <Button
+        android:id="@+id/btn_Preview"
+        android:layout_width="100dip"
+        android:layout_height="40dip"
+        android:text="Preview"
+        android:layout_below="@+id/Sur_Player"
+        android:textColor="#ff000000"
+        android:typeface="sans" />
 
-        <RelativeLayout
-            android:id="@+id/login_layout"
-            android:layout_width="wrap_content"
+
+        <TextView
+            android:id="@+id/text_title_layout"
+            android:layout_below="@+id/Sur_Player"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/dp_20"
-            android:layout_marginRight="@dimen/dp_20">
-            <TextView
-                android:id="@+id/text_title_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:textSize="@dimen/sp_15"
-                android:text="@string/title"
-                android:textColor="@android:color/black"/>
-            <FrameLayout
-                android:id="@+id/ip_layout"
-                android:layout_below="@id/text_title_layout"
+            android:gravity="center_horizontal"
+            android:textSize="@dimen/sp_15"
+            android:text="@string/title"
+            android:textColor="@android:color/black"/>
+        <FrameLayout
+            android:id="@+id/ip_layout"
+            android:layout_below="@id/text_title_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_6"
+            android:gravity="center">
+
+            <EditText
+                android:id="@+id/ip"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_6"
-                android:gravity="center">
+                android:layout_height="55dp"
+                android:layout_marginTop="5dp"
+                android:hint="@string/ip"
+                android:maxLength="20"
+                android:paddingLeft="55dp"
+                android:paddingRight="60dp" />
+            <ImageView
+                android:layout_width="@dimen/dp_31"
+                android:layout_height="@dimen/dp_35"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginStart="@dimen/dp_8"
+                android:layout_marginLeft="@dimen/dp_8"
+                android:layout_marginBottom="@dimen/dp_4"
+                android:src="@drawable/ic_ip" />
+        </FrameLayout>
 
-                <EditText
-                    android:id="@+id/ip"
-                    android:layout_width="fill_parent"
-                    android:layout_height="55dp"
-                    android:layout_marginTop="5dp"
-                    android:hint="@string/ip"
-                    android:maxLength="20"
-                    android:paddingLeft="55dp"
-                    android:paddingRight="60dp" />
-                <ImageView
-                    android:layout_width="@dimen/dp_31"
-                    android:layout_height="@dimen/dp_35"
-                    android:layout_gravity="left|center_vertical"
-                    android:layout_marginStart="@dimen/dp_8"
-                    android:layout_marginLeft="@dimen/dp_8"
-                    android:layout_marginBottom="@dimen/dp_4"
-                    android:src="@drawable/ic_ip" />
-            </FrameLayout>
+        <FrameLayout
+            android:id="@+id/port_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ip_layout"
+            android:layout_marginTop="@dimen/dp_6"
+            android:gravity="center">
 
-            <FrameLayout
-                android:id="@+id/port_layout"
+            <EditText
+                android:id="@+id/port"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/ip_layout"
-                android:layout_marginTop="@dimen/dp_6"
-                android:gravity="center">
+                android:layout_height="@dimen/dp_55"
+                android:inputType="number"
+                android:maxLength="6"
+                android:paddingLeft="@dimen/dp_55"
+                android:paddingRight="@dimen/dp_60"
+                android:hint="@string/port"/>
 
-                <EditText
-                    android:id="@+id/port"
-                    android:layout_width="fill_parent"
-                    android:layout_height="@dimen/dp_55"
-                    android:inputType="number"
-                    android:maxLength="6"
-                    android:paddingLeft="@dimen/dp_55"
-                    android:paddingRight="@dimen/dp_60"
-                    android:hint="@string/port"/>
+            <ImageView
+                android:layout_width="@dimen/dp_31"
+                android:layout_height="@dimen/dp_35"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginStart="@dimen/dp_8"
+                android:layout_marginLeft="@dimen/dp_8"
+                android:layout_marginBottom="@dimen/dp_4"
+                android:src="@drawable/ic_port" />
+        </FrameLayout>
 
-                <ImageView
-                    android:layout_width="@dimen/dp_31"
-                    android:layout_height="@dimen/dp_35"
-                    android:layout_gravity="left|center_vertical"
-                    android:layout_marginStart="@dimen/dp_8"
-                    android:layout_marginLeft="@dimen/dp_8"
-                    android:layout_marginBottom="@dimen/dp_4"
-                    android:src="@drawable/ic_port" />
-            </FrameLayout>
+        <FrameLayout
+            android:id="@+id/username_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/port_layout"
+            android:layout_marginTop="@dimen/dp_6"
+            android:gravity="center">
 
-            <FrameLayout
-                android:id="@+id/username_layout"
+            <EditText
+                android:id="@+id/username"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/port_layout"
-                android:layout_marginTop="@dimen/dp_6"
-                android:gravity="center">
+                android:layout_height="@dimen/dp_55"
+                android:maxLength="20"
+                android:paddingLeft="@dimen/dp_55"
+                android:paddingRight="@dimen/dp_60"
+                android:hint="@string/account"/>
 
-                <EditText
-                    android:id="@+id/username"
-                    android:layout_width="fill_parent"
-                    android:layout_height="@dimen/dp_55"
-                    android:maxLength="20"
-                    android:paddingLeft="@dimen/dp_55"
-                    android:paddingRight="@dimen/dp_60"
-                    android:hint="@string/account"/>
-
-                <ImageView
-                    android:layout_width="@dimen/dp_31"
-                    android:layout_height="@dimen/dp_35"
-                    android:layout_gravity="left|center_vertical"
-                    android:layout_marginStart="@dimen/dp_8"
-                    android:layout_marginLeft="@dimen/dp_8"
-                    android:layout_marginBottom="@dimen/dp_4"
-                    android:src="@drawable/ic_username"/>
-            </FrameLayout>
+            <ImageView
+                android:layout_width="@dimen/dp_31"
+                android:layout_height="@dimen/dp_35"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginStart="@dimen/dp_8"
+                android:layout_marginLeft="@dimen/dp_8"
+                android:layout_marginBottom="@dimen/dp_4"
+                android:src="@drawable/ic_username"/>
+        </FrameLayout>
 
 
-            <FrameLayout
-                android:id="@+id/password_layout"
+        <FrameLayout
+            android:id="@+id/password_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/username_layout"
+            android:layout_marginTop="@dimen/dp_6"
+            android:gravity="center">
+
+            <EditText
+                android:id="@+id/password"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/username_layout"
-                android:layout_marginTop="@dimen/dp_6"
-                android:gravity="center">
+                android:layout_height="@dimen/dp_55"
+                android:hint="@string/password"
+                android:inputType="textPassword"
+                android:maxLength="20"
+                android:paddingLeft="@dimen/dp_55"
+                android:paddingRight="@dimen/dp_60" />
 
-                <EditText
-                    android:id="@+id/password"
-                    android:layout_width="fill_parent"
-                    android:layout_height="@dimen/dp_55"
-                    android:hint="@string/password"
-                    android:inputType="textPassword"
-                    android:maxLength="20"
-                    android:paddingLeft="@dimen/dp_55"
-                    android:paddingRight="@dimen/dp_60" />
-
-                <ImageView
-                    android:layout_width="@dimen/dp_31"
-                    android:layout_height="@dimen/dp_35"
-                    android:layout_gravity="left|center_vertical"
-                    android:layout_marginStart="@dimen/dp_8"
-                    android:layout_marginLeft="@dimen/dp_8"
-                    android:layout_marginBottom="@dimen/dp_4"
-                    android:src="@drawable/ic_pwd"/>
-            </FrameLayout>
-
-        </RelativeLayout>
+            <ImageView
+                android:layout_width="@dimen/dp_31"
+                android:layout_height="@dimen/dp_35"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginStart="@dimen/dp_8"
+                android:layout_marginLeft="@dimen/dp_8"
+                android:layout_marginBottom="@dimen/dp_4"
+                android:src="@drawable/ic_pwd"/>
+        </FrameLayout>
 
         <ImageButton
             android:id="@+id/login"
             android:scaleType="centerCrop"
             android:layout_width="@dimen/dp_65"
             android:layout_height="@dimen/dp_65"
-            android:layout_below="@id/password"
+            android:layout_below="@+id/password_layout"
+            android:layout_centerInParent="true"
             android:layout_marginTop="@dimen/dp_25"
             android:background="@android:color/transparent"
             android:src="@mipmap/socket"/>
 
-    </com.qmuiteam.qmui.layout.QMUILinearLayout>
+<!--    <com.example.xs.views.RockerView-->
+<!--        android:id="@+id/rockerView"-->
+<!--        android:layout_width="@dimen/dp_150"-->
+<!--        android:layout_height="@dimen/dp_150"-->
+<!--        android:layout_alignParentBottom="true"/>-->
 
 </RelativeLayout>

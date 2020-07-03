@@ -8,6 +8,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 
+import com.example.xs.activity.MainActivity;
 import com.example.xs.activity.StartActivity;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
@@ -44,9 +45,20 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
     public int m_lUserID = -1;
     public int m_iChan = 0;
 
+
     public PlaySurfaceView(StartActivity startActivity)
     {
         super((Context) startActivity);
+
+        // TODO Auto-generated constructor stub
+        m_hHolder = this.getHolder();
+        getHolder().addCallback(this);
+    }
+
+
+    public PlaySurfaceView(MainActivity mainActivity)
+    {
+        super((Context) mainActivity);
 
         // TODO Auto-generated constructor stub
         m_hHolder = this.getHolder();
@@ -87,8 +99,8 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
 
     public void setParam(int nScreenSize)
     {
-        m_iWidth = nScreenSize / 2;
-        m_iHeight = (m_iWidth * 3) / 4;
+        m_iWidth = nScreenSize;
+        m_iHeight = m_iWidth;
     }
 
     public void startPreview(int iUserID, int iChan)
