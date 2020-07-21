@@ -8,7 +8,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 
-import com.example.xs.activity.MainActivity;
 import com.example.xs.activity.StartActivity;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
@@ -18,36 +17,33 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
 
     private final String TAG = "PlaySurfaceView";
     private int m_iWidth = 0;
-    public int getM_iWidth()
-    {
+
+    public int getM_iWidth() {
         return m_iWidth;
     }
 
-    public void setM_iWidth(int m_iWidth)
-    {
+    public void setM_iWidth(int m_iWidth) {
         this.m_iWidth = m_iWidth;
     }
 
-    public int getM_iHeight()
-    {
+    public int getM_iHeight() {
         return m_iHeight;
     }
 
-    public void setM_iHeight(int m_iHeight)
-    {
+    public void setM_iHeight(int m_iHeight) {
         this.m_iHeight = m_iHeight;
     }
 
     private int m_iHeight = 0;
-    public int m_iPreviewHandle = -1;
+    private int m_iPreviewHandle = -1;
+
     public SurfaceHolder m_hHolder;
     public boolean bCreate = false;
     public int m_lUserID = -1;
     public int m_iChan = 0;
 
 
-    public PlaySurfaceView(StartActivity startActivity)
-    {
+    public PlaySurfaceView(StartActivity startActivity) {
         super((Context) startActivity);
 
         // TODO Auto-generated constructor stub
@@ -55,19 +51,8 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
         getHolder().addCallback(this);
     }
 
-
-    public PlaySurfaceView(MainActivity mainActivity)
-    {
-        super((Context) mainActivity);
-
-        // TODO Auto-generated constructor stub
-        m_hHolder = this.getHolder();
-        getHolder().addCallback(this);
-    }
-
     @Override
-    public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3)
-    {
+    public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
         // TODO Auto-generated method stub
         setZOrderOnTop(true);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
@@ -75,8 +60,7 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder arg0)
-    {
+    public void surfaceCreated(SurfaceHolder arg0) {
         // TODO Auto-generated method stub
         bCreate = true;
         System.out.println("surfaceCreated");
@@ -84,37 +68,29 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder arg0)
-    {
+    public void surfaceDestroyed(SurfaceHolder arg0) {
         // TODO Auto-generated method stub
         System.out.println("surfaceDestroyed");
         bCreate = false;
 
     }
 
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
-    {
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.setMeasuredDimension(m_iWidth - 1, m_iHeight - 1);
     }
 
-    public void setParam(int nScreenSize)
-    {
-        m_iWidth = nScreenSize;
-        m_iHeight = m_iWidth;
+    public void setParam(int nScreenSize) {
+        m_iWidth = nScreenSize / 2;
+        m_iHeight = (m_iWidth * 3) / 4;
     }
 
-    public void startPreview(int iUserID, int iChan)
-    {
+    public void startPreview(int iUserID, int iChan) {
         Log.i(TAG, "preview channel:" + iChan);
-        while (!bCreate)
-        {
-            try
-            {
-                Thread.sleep(100);
+        while (!bCreate) {
+            try {
+                Thread.sleep(200);
                 Log.i(TAG, "wait for surface create");
-            }
-            catch (InterruptedException e)
-            {
+            } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -126,16 +102,16 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
         previewInfo.bBlocked = 1;
         previewInfo.hHwnd = m_hHolder;
 
-        // HCNetSDK start preview
         m_iPreviewHandle = HCNetSDK.getInstance().NET_DVR_RealPlay_V40(iUserID, previewInfo, null);
-        if (m_iPreviewHandle < 0)
-        {
+        // 窗口句柄
+        if (m_iPreviewHandle < 0) {
             Log.e(TAG, "NET_DVR_RealPlay is failed!Err:" + HCNetSDK.getInstance().NET_DVR_GetLastError());
         }
+
+
     }
 
-    public void stopPreview()
-    {
+    public void stopPreview() {
         HCNetSDK.getInstance().NET_DVR_StopRealPlay(m_iPreviewHandle);
     }
 }

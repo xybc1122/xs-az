@@ -3,6 +3,8 @@ package com.example.xs.utils;
 import android.content.Context;
 import android.os.Handler;
 
+import com.hikvision.netsdk.HCNetSDK;
+import com.hikvision.netsdk.INT_PTR;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 public class MsgUtil {
@@ -22,5 +24,12 @@ public class MsgUtil {
                 tipDialog.dismiss();
             }
         }, delayMillis);
+    }
+
+    public static String errMsg() {
+        INT_PTR ptr = new INT_PTR();
+        ptr.iValue = HCNetSDK.getInstance().NET_DVR_GetLastError();
+        return HCNetSDK.getInstance().NET_DVR_GetErrorMsg(ptr);
+
     }
 }

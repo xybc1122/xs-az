@@ -3,10 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:kongqw="http://schemas.android.com/apk/res-auto"
     android:filterTouchesWhenObscured="true"
-    android:background="@color/qmui_config_color_10_white"
-    android:padding="@dimen/dp_10"
-    android:gravity="center">
+    android:background="@color/qmui_config_color_10_white">
 
 
     <SurfaceView
@@ -14,151 +13,194 @@
         android:layout_width="match_parent"
         android:layout_height="330dp"
         android:background="#0000ff00" />
-    <Button
-        android:id="@+id/btn_Preview"
-        android:layout_width="100dip"
-        android:layout_height="40dip"
-        android:text="Preview"
+    <LinearLayout
+        android:id="@+id/play_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/Sur_Player"
-        android:textColor="#ff000000"
-        android:typeface="sans" />
-
-
-        <TextView
-            android:id="@+id/text_title_layout"
-            android:layout_below="@+id/Sur_Player"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:textSize="@dimen/sp_15"
-            android:text="@string/title"
-            android:textColor="@android:color/black"/>
-        <FrameLayout
-            android:id="@+id/ip_layout"
-            android:layout_below="@id/text_title_layout"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_6"
-            android:gravity="center">
-
-            <EditText
-                android:id="@+id/ip"
-                android:layout_width="fill_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="5dp"
-                android:hint="@string/ip"
-                android:maxLength="20"
-                android:paddingLeft="55dp"
-                android:paddingRight="60dp" />
-            <ImageView
-                android:layout_width="@dimen/dp_31"
-                android:layout_height="@dimen/dp_35"
-                android:layout_gravity="left|center_vertical"
-                android:layout_marginStart="@dimen/dp_8"
-                android:layout_marginLeft="@dimen/dp_8"
-                android:layout_marginBottom="@dimen/dp_4"
-                android:src="@drawable/ic_ip" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/port_layout"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/ip_layout"
-            android:layout_marginTop="@dimen/dp_6"
-            android:gravity="center">
-
-            <EditText
-                android:id="@+id/port"
-                android:layout_width="fill_parent"
-                android:layout_height="@dimen/dp_55"
-                android:inputType="number"
-                android:maxLength="6"
-                android:paddingLeft="@dimen/dp_55"
-                android:paddingRight="@dimen/dp_60"
-                android:hint="@string/port"/>
-
-            <ImageView
-                android:layout_width="@dimen/dp_31"
-                android:layout_height="@dimen/dp_35"
-                android:layout_gravity="left|center_vertical"
-                android:layout_marginStart="@dimen/dp_8"
-                android:layout_marginLeft="@dimen/dp_8"
-                android:layout_marginBottom="@dimen/dp_4"
-                android:src="@drawable/ic_port" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/username_layout"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/port_layout"
-            android:layout_marginTop="@dimen/dp_6"
-            android:gravity="center">
-
-            <EditText
-                android:id="@+id/username"
-                android:layout_width="fill_parent"
-                android:layout_height="@dimen/dp_55"
-                android:maxLength="20"
-                android:paddingLeft="@dimen/dp_55"
-                android:paddingRight="@dimen/dp_60"
-                android:hint="@string/account"/>
-
-            <ImageView
-                android:layout_width="@dimen/dp_31"
-                android:layout_height="@dimen/dp_35"
-                android:layout_gravity="left|center_vertical"
-                android:layout_marginStart="@dimen/dp_8"
-                android:layout_marginLeft="@dimen/dp_8"
-                android:layout_marginBottom="@dimen/dp_4"
-                android:src="@drawable/ic_username"/>
-        </FrameLayout>
-
-
-        <FrameLayout
-            android:id="@+id/password_layout"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/username_layout"
-            android:layout_marginTop="@dimen/dp_6"
-            android:gravity="center">
-
-            <EditText
-                android:id="@+id/password"
-                android:layout_width="fill_parent"
-                android:layout_height="@dimen/dp_55"
-                android:hint="@string/password"
-                android:inputType="textPassword"
-                android:maxLength="20"
-                android:paddingLeft="@dimen/dp_55"
-                android:paddingRight="@dimen/dp_60" />
-
-            <ImageView
-                android:layout_width="@dimen/dp_31"
-                android:layout_height="@dimen/dp_35"
-                android:layout_gravity="left|center_vertical"
-                android:layout_marginStart="@dimen/dp_8"
-                android:layout_marginLeft="@dimen/dp_8"
-                android:layout_marginBottom="@dimen/dp_4"
-                android:src="@drawable/ic_pwd"/>
-        </FrameLayout>
+        android:layout_margin="@dimen/dp_10"
+        android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/login"
-            android:scaleType="centerCrop"
-            android:layout_width="@dimen/dp_65"
-            android:layout_height="@dimen/dp_65"
-            android:layout_below="@+id/password_layout"
-            android:layout_centerInParent="true"
-            android:layout_marginTop="@dimen/dp_25"
+            android:id="@+id/play_and_stop"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/dp_6"
             android:background="@android:color/transparent"
-            android:src="@mipmap/socket"/>
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/play" />
 
-<!--    <com.example.xs.views.RockerView-->
-<!--        android:id="@+id/rockerView"-->
-<!--        android:layout_width="@dimen/dp_150"-->
-<!--        android:layout_height="@dimen/dp_150"-->
-<!--        android:layout_alignParentBottom="true"/>-->
+
+        <ImageButton
+            android:id="@+id/zoom_in"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/dp_6"
+
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/add" />
+
+        <ImageButton
+            android:id="@+id/zoom_out"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/del" />
+
+
+        <ImageButton
+            android:id="@+id/login_out"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/log_out" />
+
+    </LinearLayout>
+
+    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+        android:id="@+id/sub_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:gravity="center"
+        app:qmui_backgroundColor="#f4ea2a"
+        android:layout_below="@+id/play_layout"
+        android:padding="10dp"
+        android:text="抓图"
+        app:qmui_radius="@dimen/dp_5"
+        app:qmui_borderColor="#f4ea2a"
+        android:textColor="#fff"
+        android:layout_marginLeft="@dimen/dp_10"
+        />
+
+
+
+    <ImageButton
+        android:id="@+id/up"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:layout_centerInParent="true"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_below="@+id/sub_img"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/up" />
+
+    <ImageButton
+        android:id="@+id/left_up"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_below="@+id/sub_img"
+        android:layout_toLeftOf="@+id/up"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/left_up" />
+
+    <ImageButton
+        android:id="@+id/right_up"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_below="@+id/sub_img"
+        android:layout_toRightOf="@+id/up"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/right_up" />
+
+
+    <ImageButton
+        android:id="@+id/reset"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:layout_below="@+id/up"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/reset" />
+
+    <ImageButton
+        android:id="@+id/left"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_toLeftOf="@+id/reset"
+        android:layout_below="@+id/up"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/left" />
+
+    <ImageButton
+        android:id="@+id/right"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_toRightOf="@+id/reset"
+        android:layout_below="@+id/up"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/play" />
+
+
+    <ImageButton
+        android:id="@+id/down"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_below="@+id/reset"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/down" />
+
+
+
+    <ImageButton
+        android:id="@+id/left_down"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_toLeftOf="@+id/down"
+        android:layout_below="@+id/reset"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/left_down" />
+
+    <ImageButton
+        android:id="@+id/right_down"
+        android:layout_width="@dimen/dp_35"
+        android:layout_height="@dimen/dp_35"
+        android:clickable="true"
+        android:gravity="center"
+        android:layout_toRightOf="@+id/down"
+        android:layout_below="@+id/reset"
+        android:layout_margin="@dimen/dp_6"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/right_down" />
+
 
 </RelativeLayout>

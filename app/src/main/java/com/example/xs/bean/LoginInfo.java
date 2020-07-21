@@ -6,14 +6,17 @@ public class LoginInfo implements Serializable {
 
     private Integer loginId;
 
-    private DeviceInfo_30 deviceInfo_30;
+    private int m_iStartChan = 0; // start channel number
+    private int m_iChanNum = 0; // channel number
 
-    public LoginInfo(Integer loginId, DeviceInfo_30 deviceInfo_30) {
-        this.loginId = loginId;
-        this.deviceInfo_30 = deviceInfo_30;
-    }
 
     public LoginInfo() {
+    }
+
+    public LoginInfo(Integer loginId, int m_iStartChan, int m_iChanNum) {
+        this.loginId = loginId;
+        this.m_iStartChan = m_iStartChan;
+        this.m_iChanNum = m_iChanNum;
     }
 
     public Integer getLoginId() {
@@ -24,12 +27,19 @@ public class LoginInfo implements Serializable {
         this.loginId = loginId;
     }
 
-
-    public DeviceInfo_30 getDeviceInfo_30() {
-        return deviceInfo_30;
+    public int getM_iStartChan() {
+        return m_iStartChan;
     }
 
-    public void setDeviceInfo_30(DeviceInfo_30 deviceInfo_30) {
-        this.deviceInfo_30 = deviceInfo_30;
+    public void setM_iStartChan(int m_iStartChan) {
+        this.m_iStartChan = m_iStartChan;
+    }
+
+    public int getM_iChanNum() {
+        return m_iChanNum;
+    }
+
+    public void setM_iChanNum(int m_iChanNum) {
+        this.m_iChanNum = m_iChanNum;
     }
 }
