@@ -67,6 +67,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
 
     private ImageButton down = null;
 
+    private ImageButton reset = null;
 
     private ImageButton zoomIn = null;
 
@@ -102,8 +103,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
 
 
     /**
-     * @param NULL [in]
-     * @param NULL [out]
      * @return exception instance
      * @fn getExceptiongCbf
      * @author zhuzhenlei
@@ -337,7 +336,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
         leftUp.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.UP_LEFT);
+                setCommand(event, lRealHandle, PTZCommand.UP_LEFT, R.mipmap.left_up_red, R.mipmap.left_up, leftUp);
                 return true;
             }
         });
@@ -394,6 +393,14 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
                 return true;
             }
         });
+
+        reset.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                setCommand(event, lRealHandle, PTZCommand.PAN_AUTO);
+                return true;
+            }
+        });
     }
 
     private void setCommand(MotionEvent event, int handel, int command) {
@@ -407,7 +414,31 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
         }
     }
 
+    /**
+     * '
+     *
+     * @param event
+     * @param handel
+     * @param command     sdk执行的命令
+     * @param downColor   按下去的图标
+     * @param upColor     抬起的图标
+     * @param imageButton
+     */
+    private void setCommand(MotionEvent event, int handel, int command, int downColor, int upColor, ImageButton imageButton) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                imageButton.setImageResource(downColor);
+                PTZControlUtil.PTZControl(handel, command, 0);
+                break;
+            case MotionEvent.ACTION_UP:
+                PTZControlUtil.PTZControl(handel, command, 1);
+                imageButton.setImageResource(upColor);
+                break;
+        }
+    }
+
     private void findViews() {
+        reset = findViewById(R.id.reset);
         left = findViewById(R.id.left);
         leftUp = findViewById(R.id.left_up);
         leftDown = findViewById(R.id.left_down);

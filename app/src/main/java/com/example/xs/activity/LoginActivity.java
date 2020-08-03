@@ -59,7 +59,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 mLoginBt.setEnabled(false);
                 mLoginBt.setImageResource(R.mipmap.sorcket_red);
                 if (checkLogin()) {
-                    Intent intent = new Intent(LoginActivity.this, StartActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     intent.putExtra("loginInfo", loginInfo);
                     this.finish();
                     startActivity(intent);

@@ -5,15 +5,13 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 
-import com.example.xs.activity.StartActivity;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
 
 @SuppressLint("NewApi")
-public class PlaySurfaceView extends SurfaceView implements Callback {
+public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callback {
 
     private final String TAG = "PlaySurfaceView";
     private int m_iWidth = 0;
@@ -43,19 +41,16 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
     public int m_iChan = 0;
 
 
-    public PlaySurfaceView(StartActivity startActivity) {
-        super((Context) startActivity);
-
-        // TODO Auto-generated constructor stub
+    public PlaySurfaceView(Context context) {
+        super(context);
         m_hHolder = this.getHolder();
-        getHolder().addCallback(this);
+        m_hHolder.addCallback(this);
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
         // TODO Auto-generated method stub
-        setZOrderOnTop(true);
-        getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        m_hHolder.setFormat(PixelFormat.TRANSLUCENT);
         System.out.println("surfaceChanged");
     }
 
@@ -79,12 +74,16 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
         super.setMeasuredDimension(m_iWidth - 1, m_iHeight - 1);
     }
 
-    public void setParam(int nScreenSize) {
-        m_iWidth = nScreenSize / 2;
-        m_iHeight = (m_iWidth * 3) / 4;
+    public void setParam(int iHeight) {
+        m_iHeight = iHeight;
     }
 
-    public void startPreview(int iUserID, int iChan) {
+    public void setParam(int iWidth, int iHeight) {
+        m_iHeight = iHeight;
+        m_iWidth = iWidth;
+    }
+
+    public int startPreview(int iUserID, int iChan) {
         Log.i(TAG, "preview channel:" + iChan);
         while (!bCreate) {
             try {
@@ -95,7 +94,6 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
                 e.printStackTrace();
             }
         }
-
         NET_DVR_PREVIEWINFO previewInfo = new NET_DVR_PREVIEWINFO();
         previewInfo.lChannel = iChan;
         previewInfo.dwStreamType = 1; // substream
@@ -106,8 +104,9 @@ public class PlaySurfaceView extends SurfaceView implements Callback {
         // 窗口句柄
         if (m_iPreviewHandle < 0) {
             Log.e(TAG, "NET_DVR_RealPlay is failed!Err:" + HCNetSDK.getInstance().NET_DVR_GetLastError());
+            return -1;
         }
-
+        return m_iPreviewHandle;
 
     }
 
