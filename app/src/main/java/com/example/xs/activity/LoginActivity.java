@@ -11,6 +11,7 @@ import android.widget.ImageButton;
 
 import com.example.xs.R;
 import com.example.xs.bean.LoginInfo;
+import com.example.xs.utils.GlobalUtil;
 import com.example.xs.utils.MsgUtil;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_DEVICEINFO_V30;
@@ -52,6 +53,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         password.setText("xsznaf168");
 
     }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -60,7 +62,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 mLoginBt.setImageResource(R.mipmap.sorcket_red);
                 if (checkLogin()) {
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    intent.putExtra("loginInfo", loginInfo);
                     this.finish();
                     startActivity(intent);
                     break;
@@ -77,7 +78,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private boolean checkLogin(){
+    private boolean checkLogin() {
         m_oNetDvrDeviceInfoV30 = new NET_DVR_DEVICEINFO_V30();
         final String strIp = ipAdd.getText().toString();
         final int nPort = Integer.parseInt(port.getText().toString());
@@ -110,25 +111,24 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             MsgUtil.stopHandlerMsg(tipDialog, 2000);
             return false;
         }
-        if (m_oNetDvrDeviceInfoV30.byChanNum > 0)
-        {
+        if (m_oNetDvrDeviceInfoV30.byChanNum > 0) {
             m_iStartChan = m_oNetDvrDeviceInfoV30.byStartChan;
             m_iChanNum = m_oNetDvrDeviceInfoV30.byChanNum;
-        }
-        else if (m_oNetDvrDeviceInfoV30.byIPChanNum > 0)
-        {
+        } else if (m_oNetDvrDeviceInfoV30.byIPChanNum > 0) {
             m_iStartChan = m_oNetDvrDeviceInfoV30.byStartDChan;
             m_iChanNum = m_oNetDvrDeviceInfoV30.byIPChanNum + m_oNetDvrDeviceInfoV30.byHighDChanNum * 256;
         }
-        loginInfo = new LoginInfo(m_iLogID,m_iStartChan,m_iChanNum);
+        loginInfo = new LoginInfo(m_iLogID, m_iStartChan, m_iChanNum);
+        //保存全局用户信息
+        GlobalUtil.loginInfo = loginInfo;
         return true;
     }
 
     private void findViews() {
         mLoginBt = findViewById(R.id.login);
-        ipAdd =  findViewById(R.id.ip);
+        ipAdd = findViewById(R.id.ip);
         port = findViewById(R.id.port);
-        userName =  findViewById(R.id.username);
+        userName = findViewById(R.id.username);
         password = findViewById(R.id.password);
     }
 

@@ -9,5 +9,14 @@
         android:id="@+id/id_relativeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+        <ImageButton
+            android:id="@+id/play"
+            android:layout_width="@dimen/dp_75"
+            android:layout_height="@dimen/dp_75"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/play" />
     </RelativeLayout>
 </ScrollView>

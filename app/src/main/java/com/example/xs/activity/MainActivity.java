@@ -1,13 +1,11 @@
 package com.example.xs.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.xs.R;
-import com.example.xs.bean.LoginInfo;
 import com.example.xs.fragment.TwoFragment;
 import com.example.xs.fragment.VideoListFragment;
 import com.hjm.bottomtabbar.BottomTabBar;
@@ -19,11 +17,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent intent = getIntent();
-        LoginInfo loginInfo = (LoginInfo) intent.getSerializableExtra("loginInfo");
-        if (loginInfo == null) {
-            return;
-        }
 
         mBottomBar = (BottomTabBar) findViewById(R.id.bottom_tab_bar);
         mBottomBar.init(getSupportFragmentManager(), 720, 1280)

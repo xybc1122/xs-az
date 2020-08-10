@@ -70,9 +70,6 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     }
 
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.setMeasuredDimension(m_iWidth - 1, m_iHeight - 1);
-    }
 
     public void setParam(int iHeight) {
         m_iHeight = iHeight;
