@@ -3,33 +3,22 @@ package com.example.xs.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.example.xs.R;
 import com.example.xs.bean.LoginInfo;
 import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.PTZControlUtil;
-import com.example.xs.views.PlaySurfaceView;
-import com.hikvision.netsdk.ExceptionCallBack;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.PTZCommand;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
-public class StartActivity extends Activity implements View.OnClickListener, Callback {
-
-    private PlaySurfaceView[] playView = new PlaySurfaceView[4];
+public class StartActivity extends Activity implements View.OnClickListener{
 
     private final String TAG = StartActivity.class.getName();
 
@@ -82,39 +71,14 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
         setContentView(R.layout.activity_start);
         findViews();
         setListeners();
-        Intent intent = getIntent();
-        loginInfo = (LoginInfo) intent.getSerializableExtra("loginInfo");
-        if (loginInfo == null) {
-            return;
-        }
-        m_iLogID = loginInfo.getLoginId();
-        m_iChanNum = loginInfo.getM_iChanNum();
-        m_iStartChan = loginInfo.getM_iStartChan();
-        if (m_iChanNum > 1) {
-            ChangeSingleSurFace(false);
-        } else {
-            ChangeSingleSurFace(true);
-        }
-        ExceptionCallBack oexceptionCbf = getExceptiongCbf();
-        if (!HCNetSDK.getInstance().NET_DVR_SetExceptionCallBack(oexceptionCbf)) {
-            Log.e(TAG, "NET_DVR_SetExceptionCallBack is failed!");
-        }
-    }
-
-
-    /**
-     * @return exception instance
-     * @fn getExceptiongCbf
-     * @author zhuzhenlei
-     * @brief process exception
-     */
-    private ExceptionCallBack getExceptiongCbf() {
-        ExceptionCallBack oExceptionCbf = new ExceptionCallBack() {
-            public void fExceptionCallBack(int iType, int iUserID, int iHandle) {
-                System.out.println("recv exception, type:" + iType);
-            }
-        };
-        return oExceptionCbf;
+//        Intent intent = getIntent();
+//        loginInfo = (LoginInfo) intent.getSerializableExtra("loginInfo");
+//        if (loginInfo == null) {
+//            return;
+//        }
+//        m_iLogID = loginInfo.getLoginId();
+//        m_iChanNum = loginInfo.getM_iChanNum();
+//        m_iStartChan = loginInfo.getM_iStartChan();
     }
 
 
@@ -122,24 +86,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.play_and_stop:
-                if (m_iLogID < 0) {
-                    Toast.makeText(this, "设备已注销", Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                if (m_iChanNum > 1)// preview more than a channel
-                {
-                    if (!m_bMultiPlay) {
-                        startMultiPreview();
-                        m_bMultiPlay = true;
-                        mPlayAndStop.setImageResource(R.mipmap.stop);
-
-                    } else {
-                        stopMultiPreview();
-                        m_bMultiPlay = false;
-                        mPlayAndStop.setImageResource(R.mipmap.play);
-
-                    }
-                }
                 break;
             case R.id.login_out:
                 showMessagePositiveDialog();
@@ -178,129 +124,10 @@ public class StartActivity extends Activity implements View.OnClickListener, Cal
             MsgUtil.stopHandlerMsg(tip, 2000);
         }
         if (isLogOut) {
-            m_iLogID = -1;
             Intent intent = new Intent(StartActivity.this, LoginActivity.class);
             this.finish();
             startActivity(intent);
             //注销成功
-        }
-    }
-
-    private void startMultiPreview() {
-        //one by one
-        for (int i = 0; i < 4; i++) {
-            playView[i].startPreview(m_iLogID, m_iStartChan + i);
-        }
-    }
-
-    private void stopMultiPreview() {
-        int i = 0;
-        for (i = 0; i < 4; i++) {
-            playView[i].stopPreview();
-        }
-        m_iPlayID = -1;
-    }
-
-
-    private void ChangeSingleSurFace(boolean bSingle) {
-        DisplayMetrics metric = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metric);
-
-        for (int i = 0; i < 4; i++) {
-            if (playView[i] == null) {
-                playView[i] = new PlaySurfaceView(this);
-                playView[i].setParam(metric.widthPixels);
-                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT);
-                params.bottomMargin = playView[i].getM_iHeight() - (i / 2)
-                        * playView[i].getM_iHeight();
-                params.leftMargin = (i % 2) * playView[i].getM_iWidth();
-                params.gravity = Gravity.BOTTOM | Gravity.LEFT;
-                addContentView(playView[i], params);
-                playView[i].setVisibility(View.INVISIBLE);
-            }
-        }
-
-        if (bSingle) {
-            for (int i = 0; i < 4; ++i) {
-                playView[i].setVisibility(View.INVISIBLE);
-            }
-            playView[0].setParam(metric.widthPixels * 2);
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT);
-            params.bottomMargin = playView[3].getM_iHeight() - (3 / 2)
-                    * playView[3].getM_iHeight();
-//            params.bottomMargin = 0;
-            params.leftMargin = 0;
-            // params.
-            params.gravity = Gravity.BOTTOM | Gravity.LEFT;
-            playView[0].setLayoutParams(params);
-            playView[0].setVisibility(View.VISIBLE);
-        } else {
-            for (int i = 0; i < 4; ++i) {
-                playView[i].setVisibility(View.VISIBLE);
-            }
-
-            playView[0].setParam(metric.widthPixels);
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT);
-            params.bottomMargin = playView[0].getM_iHeight() - (0 / 2)
-                    * playView[0].getM_iHeight();
-            params.leftMargin = (0 % 2) * playView[0].getM_iWidth();
-            params.gravity = Gravity.BOTTOM | Gravity.LEFT;
-            playView[0].setLayoutParams(params);
-        }
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-//        m_osurfaceView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        Log.i(TAG, "surface is created");
-
-        //valid just when single channel preview
-        if (-1 == m_iPlayID && -1 == m_iPlaybackID) {
-            return;
-        }
-        playView[0].m_hHolder = holder;
-        Surface surface = holder.getSurface();
-        if (surface.isValid()) {
-            if (m_iPlayID != -1) {
-                if (-1 == HCNetSDK.getInstance().NET_DVR_RealPlaySurfaceChanged(m_iPlayID, 0, holder)) {
-                    Log.e(TAG, "Player setVideoWindow failed!");
-                }
-            } else {
-                if (-1 == HCNetSDK.getInstance().NET_DVR_PlayBackSurfaceChanged(m_iPlaybackID, 0, holder)) {
-                    Log.e(TAG, "Player setVideoWindow failed!");
-                }
-            }
-
-        }
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.i(TAG, "surface changed");
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.i(TAG, "Player setVideoWindow release!");
-        if (-1 == m_iPlayID && -1 == m_iPlaybackID) {
-            return;
-        }
-        if (holder.getSurface().isValid()) {
-            if (m_iPlayID != -1) {
-                if (-1 == HCNetSDK.getInstance().NET_DVR_RealPlaySurfaceChanged(m_iPlayID, 0, null)) {
-                    Log.e(TAG, "Player setVideoWindow failed!");
-                }
-            } else {
-                if (-1 == HCNetSDK.getInstance().NET_DVR_PlayBackSurfaceChanged(m_iPlaybackID, 0, null)) {
-                    Log.e(TAG, "Player setVideoWindow failed!");
-                }
-            }
         }
     }
 

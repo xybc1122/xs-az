@@ -8,6 +8,8 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.example.xs.R;
 import com.example.xs.bean.LoginInfo;
+import com.example.xs.fragment.TwoFragment;
+import com.example.xs.fragment.VideoListFragment;
 import com.hjm.bottomtabbar.BottomTabBar;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
@@ -22,19 +24,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         if (loginInfo == null) {
             return;
         }
-//
-//        //这里需要注意一下：getChildFragmentManager所得到的是在fragment里面子容器的管理器 getFragmentManager()直接获取FragmentManager
-//        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//        VideoListFragment videoListFragment = new VideoListFragment();
-//        // 步骤1:创建Bundle对象
-//        // 作用:存储数据，并传递到Fragment中
-//        Bundle bundle = new Bundle();
-//        // 步骤2:往bundle中添加数据
-//        bundle.putInt("miLogID", loginInfo.getLoginId());
-//        bundle.putInt("miStartChan", loginInfo.getM_iStartChan());
-//        // 步骤3:把数据设置到Fragment中
-//        videoListFragment.setArguments(bundle);
-//        transaction.commit();
 
         mBottomBar = (BottomTabBar) findViewById(R.id.bottom_tab_bar);
         mBottomBar.init(getSupportFragmentManager(), 720, 1280)

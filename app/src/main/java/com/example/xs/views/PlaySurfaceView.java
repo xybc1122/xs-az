@@ -81,6 +81,7 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public void setParam(int iWidth, int iHeight) {
         m_iHeight = iHeight;
         m_iWidth = iWidth;
+        m_hHolder.setFixedSize(m_iWidth, m_iHeight);//分辨率
     }
 
     public int startPreview(int iUserID, int iChan) {

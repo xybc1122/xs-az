@@ -1,4 +1,4 @@
-package com.example.xs.activity;
+package com.example.xs.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
