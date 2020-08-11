@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="5dp"
-    android:scrollbars="none">
+    android:layout_height="match_parent">
 
-    <RelativeLayout
-        android:id="@+id/id_relativeLayout"
+    <com.qmuiteam.qmui.widget.QMUITopBar
+        android:id="@+id/topbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <ImageButton
-            android:id="@+id/play"
-            android:layout_width="@dimen/dp_75"
-            android:layout_height="@dimen/dp_75"
-            android:background="@android:color/transparent"
-            android:clickable="true"
-            android:gravity="center"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/play" />
-    </RelativeLayout>
-</ScrollView>
+        android:layout_height="?attr/qmui_topbar_height"/>
+
+    <ScrollView
+        android:layout_below="@+id/topbar"
+        android:id="@+id/id_scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+        <RelativeLayout
+            android:id="@+id/id_relativeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp">
+
+        </RelativeLayout>
+    </ScrollView>
+</RelativeLayout>
