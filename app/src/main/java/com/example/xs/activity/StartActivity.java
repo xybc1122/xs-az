@@ -9,31 +9,29 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import com.example.xs.R;
-import com.example.xs.bean.LoginInfo;
+import com.example.xs.bean.PlaySurfaceViewInfo;
+import com.example.xs.utils.GlobalUtil;
 import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.PTZControlUtil;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.PTZCommand;
+import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
+import com.qmuiteam.qmui.widget.QMUITopBar;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
-public class StartActivity extends Activity implements View.OnClickListener{
+public class StartActivity extends Activity implements View.OnClickListener {
 
     private final String TAG = StartActivity.class.getName();
-
-    private int m_iLogID = -1;
-    private int m_iStartChan = 0; // start channel number
-    private int m_iChanNum = 0; // channel number
-
-
-    private LoginInfo loginInfo = null;
 
     private int m_iPlayID = -1; // return by NET_DVR_RealPlay_V40
     private int m_iPlaybackID = -1; // return by NET_DVR_PlayBackByTime
 
     private ImageButton mLogOutBt = null;
     private ImageButton mPlayAndStop = null;
+
+    private PlaySurfaceViewInfo palyInfo;
 
     private boolean m_bMultiPlay = false;
 
@@ -65,20 +63,18 @@ public class StartActivity extends Activity implements View.OnClickListener{
 
     private int lRealHandle = 2;
 
+    private QMUITopBar mTopBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onDetach");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
         findViews();
         setListeners();
-//        Intent intent = getIntent();
-//        loginInfo = (LoginInfo) intent.getSerializableExtra("loginInfo");
-//        if (loginInfo == null) {
-//            return;
-//        }
-//        m_iLogID = loginInfo.getLoginId();
-//        m_iChanNum = loginInfo.getM_iChanNum();
-//        m_iStartChan = loginInfo.getM_iStartChan();
+        initTopBar();
+        Intent intent = getIntent();
+        palyInfo = (PlaySurfaceViewInfo) intent.getSerializableExtra("playInfo");
     }
 
 
@@ -91,6 +87,21 @@ public class StartActivity extends Activity implements View.OnClickListener{
                 showMessagePositiveDialog();
                 break;
         }
+    }
+
+    private void initTopBar() {
+        QMUIAlphaImageButton leftBackImageButton = mTopBar.addLeftBackImageButton();
+        leftBackImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(StartActivity.this, MainActivity.class);
+                finish();
+                startActivity(intent);
+
+            }
+        });
+        mTopBar.setBackgroundColor(getResources().getColor(R.color.barColor));
+        mTopBar.setTitle("通道1");
     }
 
     private void showMessagePositiveDialog() {
@@ -117,13 +128,14 @@ public class StartActivity extends Activity implements View.OnClickListener{
     //    注销
     private void LogOut() {
         final QMUITipDialog tip;
-        boolean isLogOut = HCNetSDK.getInstance().NET_DVR_Logout_V30(m_iLogID);
+        boolean isLogOut = HCNetSDK.getInstance().NET_DVR_Logout_V30(GlobalUtil.loginInfo.getLoginId());
         if (!isLogOut) {
             tip = MsgUtil.tipDialog(this, "注销失败", QMUITipDialog.Builder.ICON_TYPE_FAIL);
             tip.show();
             MsgUtil.stopHandlerMsg(tip, 2000);
         }
         if (isLogOut) {
+            GlobalUtil.loginInfo = null;
             Intent intent = new Intent(StartActivity.this, LoginActivity.class);
             this.finish();
             startActivity(intent);
@@ -265,6 +277,7 @@ public class StartActivity extends Activity implements View.OnClickListener{
     }
 
     private void findViews() {
+        mTopBar = findViewById(R.id.topbar);
         reset = findViewById(R.id.reset);
         left = findViewById(R.id.left);
         leftUp = findViewById(R.id.left_up);
@@ -288,31 +301,37 @@ public class StartActivity extends Activity implements View.OnClickListener{
     @Override
     protected void onStart() {
         super.onStart();
-        Log.i(StartActivity.class.getName(), "onStart");
+        Log.i(TAG, "onStart");
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.i(StartActivity.class.getName(), "onRestart");
+        Log.i(TAG, "onRestart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.i(StartActivity.class.getName(), "onResume");
+        Log.i(TAG, "onResume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.i(StartActivity.class.getName(), "onPause");
+        Log.i(TAG, "onPause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.i(StartActivity.class.getName(), "onStop");
+        Log.i(TAG, "onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "onDestroy");
     }
 
 }

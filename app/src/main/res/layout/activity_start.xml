@@ -6,9 +6,13 @@
     xmlns:kongqw="http://schemas.android.com/apk/res-auto"
     android:filterTouchesWhenObscured="true"
     android:background="@color/qmui_config_color_10_white">
-
+    <com.qmuiteam.qmui.widget.QMUITopBar
+        android:id="@+id/topbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/qmui_topbar_height"/>
 
     <SurfaceView
+        android:layout_below="@+id/topbar"
         android:id="@+id/Sur_Player"
         android:layout_width="match_parent"
         android:layout_height="330dp"

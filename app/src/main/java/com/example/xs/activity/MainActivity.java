@@ -1,6 +1,7 @@
 package com.example.xs.activity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.fragment.app.FragmentActivity;
@@ -12,9 +13,11 @@ import com.hjm.bottomtabbar.BottomTabBar;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private BottomTabBar mBottomBar;
+    private final String TAG = MainActivity.class.getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 

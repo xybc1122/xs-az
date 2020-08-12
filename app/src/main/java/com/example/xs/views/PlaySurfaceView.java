@@ -10,15 +10,13 @@ import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
 
 public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-
-    private final String TAG = "PlaySurfaceView";
     private int m_iWidth = 0;
-
     private int m_iHeight = 0;
 
     public SurfaceHolder m_hHolder;
     public boolean bCreate = false;
 
+    public String TAG = "PlaySurfaceView";
 
     public PlaySurfaceView(Context context) {
         super(context);
@@ -67,11 +65,10 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
             }
         }
         NET_DVR_PREVIEWINFO previewInfo = new NET_DVR_PREVIEWINFO();
-        previewInfo.lChannel = iChan;
-        previewInfo.dwStreamType = 1; // substream
-        previewInfo.bBlocked = 1;
-        previewInfo.hHwnd = m_hHolder;
-
+        previewInfo.lChannel = iChan;//通道号
+        previewInfo.dwStreamType = 0; //码流类型：0-主码流，1-子码流，
+        previewInfo.bBlocked = 1; //0- 非阻塞取流，1- 阻塞取流
+        previewInfo.hHwnd = m_hHolder; //播放窗口的句柄
         int iPreviewHandle = HCNetSDK.getInstance().NET_DVR_RealPlay_V40(iUserID, previewInfo, null);
         // 窗口句柄
         if (iPreviewHandle < 0) {
@@ -85,4 +82,5 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public void stopPreview(int iPreviewHandle) {
         HCNetSDK.getInstance().NET_DVR_StopRealPlay(iPreviewHandle);
     }
+
 }
