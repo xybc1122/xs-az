@@ -34,7 +34,10 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     private ImageButton mLogOutBt = null;
     private ImageButton mPlayAndStop = null;
-
+    //播放按钮切换
+    private boolean isOnPlay = false;
+    //播放句柄id
+    private int playId;
     private PlaySurfaceView playSurfaceView;
 
     private PlaySurfaceViewInfo palyInfo;
@@ -81,14 +84,27 @@ public class StartActivity extends Activity implements View.OnClickListener {
         initTopBar();
         createView();
         Intent intent = getIntent();
-        System.out.println("start");
         palyInfo = (PlaySurfaceViewInfo) intent.getSerializableExtra("playInfo");
+        RelativeLayout relativeLayout = findViewById(R.id.control_layout);
+        relativeLayout.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.play_and_stop:
+                if (!isOnPlay) {
+                    //播放
+                    playId = playSurfaceView.startPreview(GlobalUtil.loginInfo.getLoginId(), palyInfo.getPlayId());
+                    mPlayAndStop.setImageResource(R.mipmap.stop);
+                    isOnPlay = true;
+                } else {
+                    playSurfaceView.stopPreview(playId);
+                    //暂停
+                    mPlayAndStop.setImageResource(R.mipmap.play);
+                    isOnPlay = false;
+                }
+
                 break;
             case R.id.login_out:
                 showMessagePositiveDialog();
