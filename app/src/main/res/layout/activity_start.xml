@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:kongqw="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/qmui_config_color_10_white"
     android:filterTouchesWhenObscured="true"
-    android:background="@color/qmui_config_color_10_white">
+    android:id="@+id/root_relative">
+
     <com.qmuiteam.qmui.widget.QMUITopBar
         android:id="@+id/topbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/qmui_topbar_height"/>
+        android:layout_height="?attr/qmui_topbar_height" />
 
-    <SurfaceView
-        android:layout_below="@+id/topbar"
-        android:id="@+id/Sur_Player"
-        android:layout_width="match_parent"
-        android:layout_height="330dp"
-        android:background="#0000ff00" />
     <LinearLayout
         android:id="@+id/play_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/Sur_Player"
         android:layout_margin="@dimen/dp_10"
         android:orientation="horizontal">
 
@@ -60,14 +55,28 @@
             android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/del" />
-
+        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+            android:id="@+id/sub_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/play_layout"
+            android:layout_gravity="center"
+            android:layout_marginLeft="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="抓图"
+            android:textColor="#fff"
+            app:qmui_backgroundColor="#f4ea2a"
+            app:qmui_borderColor="#f4ea2a"
+            app:qmui_radius="@dimen/dp_5" />
 
         <ImageButton
             android:id="@+id/login_out"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
             android:layout_gravity="center"
-            android:layout_marginRight="@dimen/dp_6"
+            android:layout_marginLeft="@dimen/dp_6"
             android:clickable="true"
             android:gravity="center"
             android:scaleType="centerCrop"
@@ -75,39 +84,24 @@
 
     </LinearLayout>
 
-    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-        android:id="@+id/sub_img"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:clickable="true"
-        android:gravity="center"
-        app:qmui_backgroundColor="#f4ea2a"
-        android:layout_below="@+id/play_layout"
-        android:padding="10dp"
-        android:text="抓图"
-        app:qmui_radius="@dimen/dp_5"
-        app:qmui_borderColor="#f4ea2a"
-        android:textColor="#fff"
-        android:layout_marginLeft="@dimen/dp_10"
-        />
+
 
 
     <RelativeLayout
+        android:id="@+id/control_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/sub_img"
-        android:id="@+id/control_layout">
+        android:layout_below="@+id/play_layout">
 
         <ImageButton
             android:id="@+id/up"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
-            android:clickable="true"
-            android:layout_centerInParent="true"
             android:layout_alignParentTop="true"
-            android:gravity="center"
+            android:layout_centerInParent="true"
             android:layout_margin="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/up" />
 
@@ -115,10 +109,10 @@
             android:id="@+id/left_up"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
+            android:layout_margin="@dimen/dp_6"
+            android:layout_toLeftOf="@+id/up"
             android:clickable="true"
             android:gravity="center"
-            android:layout_toLeftOf="@+id/up"
-            android:layout_margin="@dimen/dp_6"
             android:scaleType="centerCrop"
             android:src="@mipmap/left_up" />
 
@@ -126,10 +120,10 @@
             android:id="@+id/right_up"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
+            android:layout_margin="@dimen/dp_6"
+            android:layout_toRightOf="@+id/up"
             android:clickable="true"
             android:gravity="center"
-            android:layout_toRightOf="@+id/up"
-            android:layout_margin="@dimen/dp_6"
             android:scaleType="centerCrop"
             android:src="@mipmap/right_up" />
 
@@ -138,11 +132,11 @@
             android:id="@+id/reset"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
-            android:clickable="true"
-            android:layout_centerInParent="true"
-            android:gravity="center"
             android:layout_below="@+id/up"
+            android:layout_centerInParent="true"
             android:layout_margin="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/reset" />
 
@@ -150,11 +144,11 @@
             android:id="@+id/left"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
-            android:clickable="true"
-            android:gravity="center"
-            android:layout_toLeftOf="@+id/reset"
             android:layout_below="@+id/up"
             android:layout_margin="@dimen/dp_6"
+            android:layout_toLeftOf="@+id/reset"
+            android:clickable="true"
+            android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/left" />
 
@@ -162,11 +156,11 @@
             android:id="@+id/right"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
-            android:clickable="true"
-            android:gravity="center"
-            android:layout_toRightOf="@+id/reset"
             android:layout_below="@+id/up"
             android:layout_margin="@dimen/dp_6"
+            android:layout_toRightOf="@+id/reset"
+            android:clickable="true"
+            android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/play" />
 
@@ -175,25 +169,24 @@
             android:id="@+id/down"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
-            android:clickable="true"
-            android:layout_centerInParent="true"
-            android:gravity="center"
             android:layout_below="@+id/reset"
+            android:layout_centerInParent="true"
             android:layout_margin="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/down" />
-
 
 
         <ImageButton
             android:id="@+id/left_down"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
-            android:clickable="true"
-            android:gravity="center"
-            android:layout_toLeftOf="@+id/down"
             android:layout_below="@+id/reset"
             android:layout_margin="@dimen/dp_6"
+            android:layout_toLeftOf="@+id/down"
+            android:clickable="true"
+            android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/left_down" />
 
@@ -201,11 +194,11 @@
             android:id="@+id/right_down"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
-            android:clickable="true"
-            android:gravity="center"
-            android:layout_toRightOf="@+id/down"
             android:layout_below="@+id/reset"
             android:layout_margin="@dimen/dp_6"
+            android:layout_toRightOf="@+id/down"
+            android:clickable="true"
+            android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/right_down" />
 

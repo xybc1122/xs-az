@@ -3,16 +3,20 @@ package com.example.xs.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.example.xs.R;
 import com.example.xs.bean.PlaySurfaceViewInfo;
 import com.example.xs.utils.GlobalUtil;
 import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.PTZControlUtil;
+import com.example.xs.views.PlaySurfaceView;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.PTZCommand;
 import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
@@ -30,6 +34,8 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     private ImageButton mLogOutBt = null;
     private ImageButton mPlayAndStop = null;
+
+    private PlaySurfaceView playSurfaceView;
 
     private PlaySurfaceViewInfo palyInfo;
 
@@ -73,10 +79,11 @@ public class StartActivity extends Activity implements View.OnClickListener {
         findViews();
         setListeners();
         initTopBar();
+        createView();
         Intent intent = getIntent();
+        System.out.println("start");
         palyInfo = (PlaySurfaceViewInfo) intent.getSerializableExtra("playInfo");
     }
-
 
     @Override
     public void onClick(View v) {
@@ -89,6 +96,26 @@ public class StartActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    public void createView() {
+        playSurfaceView = new PlaySurfaceView(this);
+        DisplayMetrics metrics = new DisplayMetrics();
+        RelativeLayout relativeLayout = findViewById(R.id.root_relative);
+        this.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        playSurfaceView.setParam(metrics.widthPixels, metrics.heightPixels / 2);
+        playSurfaceView.setBackgroundColor(getResources().getColor(R.color.btn_filled_blue_bg_disabled));
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        lp.addRule(RelativeLayout.BELOW, R.id.topbar);
+        playSurfaceView.setId(R.id.id_surfaceView);
+        //动态添加布局
+        relativeLayout.addView(playSurfaceView, lp);
+
+        //动态添加布局
+        LinearLayout linearLayout = findViewById(R.id.play_layout);
+        ((RelativeLayout.LayoutParams) linearLayout.getLayoutParams()).addRule(RelativeLayout.BELOW, R.id.id_surfaceView);
+    }
+
+
     private void initTopBar() {
         QMUIAlphaImageButton leftBackImageButton = mTopBar.addLeftBackImageButton();
         leftBackImageButton.setOnClickListener(new View.OnClickListener() {
@@ -97,11 +124,11 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 Intent intent = new Intent(StartActivity.this, MainActivity.class);
                 finish();
                 startActivity(intent);
-
             }
         });
+        mTopBar.setBackgroundColor(getResources().getColor(R.color.qmui_btn_blue_bg));
         mTopBar.setBackgroundColor(getResources().getColor(R.color.barColor));
-        mTopBar.setTitle("通道1");
+        mTopBar.setTitle("通道1").setTextColor(getResources().getColor(R.color.qmui_config_color_white));
     }
 
     private void showMessagePositiveDialog() {

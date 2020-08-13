@@ -63,7 +63,7 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
                 TextView textView = textViews[index] = new TextView(getActivity());
                 FrameLayout frameLayout = frameLayouts[index] = new FrameLayout(getActivity());
                 PlaySurfaceView playSurfaceView = playSurfaceViews[index] = new PlaySurfaceView(getActivity());
-                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT);
                 frameLayout.setId(frameIdMax + i);
                 frameLayout.setOnClickListener(this);
