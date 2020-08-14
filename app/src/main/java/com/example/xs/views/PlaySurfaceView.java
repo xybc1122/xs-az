@@ -14,7 +14,9 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
     private int m_iHeight = 0;
 
     public SurfaceHolder m_hHolder;
+
     public boolean bCreate = false;
+
 
     public String TAG = "PlaySurfaceView";
 

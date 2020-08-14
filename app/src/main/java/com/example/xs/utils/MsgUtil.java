@@ -3,12 +3,18 @@ package com.example.xs.utils;
 import android.content.Context;
 import android.os.Handler;
 
+import com.example.xs.service.Execution;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.INT_PTR;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 public class MsgUtil {
 
+    public static void showDialog(Context context, String text, int type) {
+        QMUITipDialog tipDialog = tipDialog(context, text, type);
+        tipDialog.show();
+        stopHandlerMsg(tipDialog, 2000);
+    }
 
     public static QMUITipDialog tipDialog(Context context, String text, int type) {
         return new QMUITipDialog.Builder(context)
@@ -21,6 +27,17 @@ public class MsgUtil {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                tipDialog.dismiss();
+            }
+        }, delayMillis);
+    }
+
+
+    public static void stopHandlerMsg(final QMUITipDialog tipDialog, long delayMillis, final Execution exe) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                exe.execution();
                 tipDialog.dismiss();
             }
         }, delayMillis);

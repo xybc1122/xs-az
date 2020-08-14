@@ -5,4 +5,7 @@
     <color name="colorAccent">#D81B60</color>
     <color name="startColor">#FF2196F3</color>
     <color name="barColor">#409EFF</color>
+    <color name="sub_img_yellow">#f4ea2a</color>
+    <color name="sub_img_yellow_down">#d4237a</color>
+
 </resources>

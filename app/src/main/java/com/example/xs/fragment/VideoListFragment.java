@@ -2,6 +2,7 @@ package com.example.xs.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -16,9 +17,10 @@ import androidx.fragment.app.Fragment;
 
 import com.example.xs.R;
 import com.example.xs.activity.StartActivity;
-import com.example.xs.bean.PlaySurfaceViewInfo;
+import com.example.xs.mvp.model.PlaySurfaceViewInfo;
 import com.example.xs.utils.GlobalUtil;
 import com.example.xs.utils.MsgUtil;
+import com.example.xs.utils.ThreadUtil;
 import com.example.xs.views.PlaySurfaceView;
 import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
 import com.qmuiteam.qmui.widget.QMUITopBar;
@@ -85,16 +87,24 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
         mTopBar.setBackgroundColor(getResources().getColor(R.color.qmui_btn_blue_bg));
         mTopBar.setTitle("实时预览").setTextColor(getResources().getColor(R.color.qmui_config_color_white));
         rightImageButton = mTopBar.addRightImageButton(R.mipmap.play_list, R.id.play);
+        final Handler handler = new Handler();
         rightImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightImageButton.setEnabled(false);
-                startMultiPreview();
+                QMUITipDialog tipDialog = ThreadUtil.loadThread(getActivity(), "视频载入中...", new Runnable() {
+                    @Override
+                    public void run() {
+                        startMultiPreview();
+                    }
+                });
                 isPlay = true;
                 rightImageButton.setVisibility(View.GONE);
+                MsgUtil.stopHandlerMsg(tipDialog, 2000);
             }
         });
     }
+
 
     @Override
     public void onStart() {
@@ -120,7 +130,7 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
             int startChan = GlobalUtil.loginInfo.getM_iStartChan() + i;
             playInfoList.add(new PlaySurfaceViewInfo(startChan));
             int res = playSurfaceViews[i].startPreview(GlobalUtil.loginInfo.getLoginId(), GlobalUtil.loginInfo.getM_iStartChan() + i);
-            playInfoList.get(i).setPlayCode(res);
+            playInfoList.get(i).setPlayId(res);
             if (res == -1) {
                 textViews[i].setText("通道暂无连接....");
                 textViews[i].setGravity(Gravity.CENTER);
@@ -134,9 +144,7 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onClick(View v) {
         if (!isPlay) {
-            QMUITipDialog tipDialog = MsgUtil.tipDialog(getActivity(), "请先点击右上角播放按钮", QMUITipDialog.Builder.ICON_TYPE_FAIL);
-            tipDialog.show();
-            MsgUtil.stopHandlerMsg(tipDialog, 2000);
+            MsgUtil.showDialog(getActivity(), "请先点击右上角播放按钮", QMUITipDialog.Builder.ICON_TYPE_FAIL);
             return;
         }
         int index = 0;
@@ -156,14 +164,13 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
                 System.out.println("333");
                 break;
         }
-
         Intent intent = new Intent(getActivity(), StartActivity.class);
         intent.putExtra("playInfo", playInfoList.get(index));
         //关闭视频
         for (int i = 0; i < 4; i++) {
             PlaySurfaceViewInfo info = playInfoList.get(i);
-            if (info.getPlayCode() != -1) {
-                playSurfaceViews[i].stopPreview(info.getPlayCode());
+            if (info.getPlayId() != -1) {
+                playSurfaceViews[i].stopPreview(info.getPlayId());
             }
         }
         startActivity(intent);

@@ -10,7 +10,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.example.xs.R;
-import com.example.xs.bean.LoginInfo;
+import com.example.xs.mvp.model.LoginInfo;
 import com.example.xs.utils.GlobalUtil;
 import com.example.xs.utils.MsgUtil;
 import com.hikvision.netsdk.HCNetSDK;
@@ -88,7 +88,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             @Override
             public void run() {
                 m_iLogID = HCNetSDK.getInstance().NET_DVR_Login_V30(strIp, nPort, strUserName, strPwd, m_oNetDvrDeviceInfoV30);
-                System.out.println("执行线程");
             }
         });
         thread.start();
@@ -97,7 +96,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("线程执行完毕");
         if (m_iLogID < 0) {
             final QMUITipDialog tipDialog;
             switch (HCNetSDK.getInstance().NET_DVR_GetLastError()) {
@@ -152,7 +150,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             Log.e(TAG, "HCNetSDK init is failed!");
             return false;
         }
-        HCNetSDK.getInstance().NET_DVR_SetLogToFile(3, "/mnt/sdcard/sdklog/", true);
+        HCNetSDK.getInstance().NET_DVR_SetLogToFile(3, "/storage/emulated/0/sdklog/", true);
         return true;
     }
 

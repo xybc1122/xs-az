@@ -1,4 +1,4 @@
-package com.example.xs.bean;
+package com.example.xs.mvp.model;
 
 import java.io.Serializable;
 

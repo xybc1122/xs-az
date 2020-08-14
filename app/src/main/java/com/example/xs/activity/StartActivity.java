@@ -3,6 +3,7 @@ package com.example.xs.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -12,10 +13,14 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.example.xs.R;
-import com.example.xs.bean.PlaySurfaceViewInfo;
+import com.example.xs.jna.HCNetSDKJNAInstance;
+import com.example.xs.mvp.model.PlaySurfaceViewInfo;
+import com.example.xs.service.StartActivityQMUIImpl;
+import com.example.xs.utils.GenerateId;
 import com.example.xs.utils.GlobalUtil;
 import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.PTZControlUtil;
+import com.example.xs.utils.ThreadUtil;
 import com.example.xs.views.PlaySurfaceView;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.PTZCommand;
@@ -24,20 +29,25 @@ import com.qmuiteam.qmui.widget.QMUITopBar;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 public class StartActivity extends Activity implements View.OnClickListener {
 
     private final String TAG = StartActivity.class.getName();
-
-    private int m_iPlayID = -1; // return by NET_DVR_RealPlay_V40
-    private int m_iPlaybackID = -1; // return by NET_DVR_PlayBackByTime
 
     private ImageButton mLogOutBt = null;
     private ImageButton mPlayAndStop = null;
     //播放按钮切换
     private boolean isOnPlay = false;
     //播放句柄id
-    private int playId;
+    private int playId = -1;
+    //绝对路径
+    private String basePath = "/sdcard/";
+    //文件后缀
+    private final static String JPG = ".jpg";
+
+    //抓图
+    private QMUIRoundButton mRoundButton;
     private PlaySurfaceView playSurfaceView;
 
     private PlaySurfaceViewInfo palyInfo;
@@ -80,6 +90,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
         findViews();
+        linearChanged(true);
         setListeners();
         initTopBar();
         createView();
@@ -92,26 +103,96 @@ public class StartActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.sub_img:
+                if (playId <= 0) {
+                    MsgUtil.showDialog(this, "请先播放视频", QMUITipDialog.Builder.ICON_TYPE_FAIL);
+                    return;
+                }
+                subImg(basePath, GenerateId.getUUid() + JPG);
+                break;
             case R.id.play_and_stop:
+                final Handler handler = new Handler();
+                QMUITipDialog tipDialog = MsgUtil.tipDialog(this, !isOnPlay ? "视频加载中..." : "视频关闭中...", QMUITipDialog.Builder.ICON_TYPE_LOADING);
+                tipDialog.show();
                 if (!isOnPlay) {
-                    //播放
-                    playId = playSurfaceView.startPreview(GlobalUtil.loginInfo.getLoginId(), palyInfo.getPlayId());
+                    ThreadUtil.startThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            playId = playSurfaceView.startPreview(GlobalUtil.loginInfo.getLoginId(), palyInfo.getPlayTartChan());
+                        }
+                    });
                     mPlayAndStop.setImageResource(R.mipmap.stop);
                     isOnPlay = true;
+                    linearChanged(false);
                 } else {
-                    playSurfaceView.stopPreview(playId);
+                    ThreadUtil.startThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            playSurfaceView.stopPreview(playId);
+                        }
+                    });
                     //暂停
                     mPlayAndStop.setImageResource(R.mipmap.play);
                     isOnPlay = false;
+                    linearChanged(true);
                 }
-
+                MsgUtil.stopHandlerMsg(tipDialog, 2000);
                 break;
             case R.id.login_out:
                 showMessagePositiveDialog();
                 break;
+            case R.id.qmui_topbar_item_left_back:
+                //如果播放中被返回 必须要关闭不然会一直重连
+                if (isOnPlay) {
+                    ThreadUtil.loadThread(this, "视频正在播放 正在关闭...", new Runnable() {
+                        @Override
+                        public void run() {
+                            playSurfaceView.stopPreview(playId);
+                        }
+                    });
+                }
+                Intent intent = new Intent(StartActivity.this, MainActivity.class);
+                this.finish();
+                startActivity(intent);
+                break;
         }
     }
 
+    //隐藏元素
+    public void linearChanged(boolean isChang) {
+        if (isChang) {
+            mRoundButton.setVisibility(View.GONE);
+            zoomIn.setVisibility(View.GONE);
+            zoomOut.setVisibility(View.GONE);
+        } else {
+            mRoundButton.setVisibility(View.VISIBLE);
+            zoomIn.setVisibility(View.VISIBLE);
+            zoomOut.setVisibility(View.VISIBLE);
+        }
+
+    }
+
+    /**
+     * 抓图
+     */
+    public void subImg(String filePath, String fileName) {
+        mRoundButton.setBackgroundColor(getResources().getColor(R.color.sub_img_yellow_down));
+        String path = filePath + fileName;
+        boolean isSub = HCNetSDKJNAInstance.getInstance().NET_DVR_CapturePictureBlock(playId, path, 0);
+        QMUITipDialog tipDialog;
+        if (isSub) {
+            tipDialog = MsgUtil.tipDialog(this, "抓图成功", QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+        } else {
+            tipDialog = MsgUtil.tipDialog(this, "抓图失败" + MsgUtil.errMsg(), QMUITipDialog.Builder.ICON_TYPE_FAIL);
+        }
+        tipDialog.show();
+        MsgUtil.stopHandlerMsg(tipDialog, 1500, new StartActivityQMUIImpl(mRoundButton, R.color.sub_img_yellow));
+    }
+
+
+    /**
+     * 创建播放视图
+     */
     public void createView() {
         playSurfaceView = new PlaySurfaceView(this);
         DisplayMetrics metrics = new DisplayMetrics();
@@ -134,14 +215,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     private void initTopBar() {
         QMUIAlphaImageButton leftBackImageButton = mTopBar.addLeftBackImageButton();
-        leftBackImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(StartActivity.this, MainActivity.class);
-                finish();
-                startActivity(intent);
-            }
-        });
+        leftBackImageButton.setOnClickListener(this);
         mTopBar.setBackgroundColor(getResources().getColor(R.color.qmui_btn_blue_bg));
         mTopBar.setBackgroundColor(getResources().getColor(R.color.barColor));
         mTopBar.setTitle("通道1").setTextColor(getResources().getColor(R.color.qmui_config_color_white));
@@ -190,11 +264,11 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private void setListeners() {
         mPlayAndStop.setOnClickListener(this);
         mLogOutBt.setOnClickListener(this);
-
+        mRoundButton.setOnClickListener(this);
         zoomIn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.ZOOM_IN);
+                setCommand(event, lRealHandle, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, zoomIn);
                 return true;
             }
         });
@@ -202,7 +276,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         zoomOut.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.ZOOM_OUT);
+                setCommand(event, lRealHandle, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, zoomOut);
                 return true;
             }
         });
@@ -320,6 +394,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
     }
 
     private void findViews() {
+        mRoundButton = findViewById(R.id.sub_img);
         mTopBar = findViewById(R.id.topbar);
         reset = findViewById(R.id.reset);
         left = findViewById(R.id.left);
