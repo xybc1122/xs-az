@@ -2,16 +2,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:kongqw="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_relative"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/qmui_config_color_10_white"
-    android:filterTouchesWhenObscured="true"
-    android:id="@+id/root_relative">
+    android:filterTouchesWhenObscured="true">
 
     <com.qmuiteam.qmui.widget.QMUITopBar
         android:id="@+id/topbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/qmui_topbar_height" />
+
     <LinearLayout
         android:id="@+id/play_layout"
         android:layout_width="match_parent"
@@ -38,7 +39,6 @@
             android:layout_height="@dimen/dp_35"
             android:layout_gravity="center"
             android:layout_marginRight="@dimen/dp_6"
-
             android:clickable="true"
             android:gravity="center"
             android:scaleType="centerCrop"
@@ -54,45 +54,29 @@
             android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/del" />
-        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+
+        <ImageButton
             android:id="@+id/sub_img"
-            android:layout_width="@dimen/dp_35"
-            android:layout_height="@dimen/dp_35"
+            android:layout_width="@dimen/dp_30"
+            android:layout_height="@dimen/dp_30"
             android:layout_gravity="center"
-            android:layout_marginRight="@dimen/dp_6"
             android:clickable="true"
-            android:gravity="center"
-            android:text="抓图"
-            android:textColor="#fff"
-            app:qmui_backgroundColor="@color/sub_img_yellow"
-            app:qmui_borderColor="#f4ea2a"
-            app:qmui_radius="@dimen/dp_5" />
-        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-            android:id="@+id/re_play"
-            android:layout_width="@dimen/dp_35"
-            android:layout_height="@dimen/dp_35"
-            android:layout_gravity="center"
             android:layout_marginRight="@dimen/dp_6"
-            android:clickable="true"
             android:gravity="center"
-            android:text="回放"
-            android:textColor="#fff"
-            app:qmui_backgroundColor="@color/sub_img_yellow"
-            app:qmui_borderColor="#f4ea2a"
-            app:qmui_radius="@dimen/dp_5" />
-        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+            android:scaleType="centerCrop"
+            android:src="@mipmap/jt" />
+
+        <ImageButton
             android:id="@+id/record"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"
             android:layout_gravity="center"
-            android:layout_marginRight="@dimen/dp_6"
             android:clickable="true"
+            android:layout_marginRight="@dimen/dp_6"
             android:gravity="center"
-            android:text="录制"
-            android:textColor="#fff"
-            app:qmui_backgroundColor="@color/sub_img_yellow"
-            app:qmui_borderColor="#f4ea2a"
-            app:qmui_radius="@dimen/dp_5" />
+            android:scaleType="centerCrop"
+            android:src="@mipmap/record" />
+
         <ImageButton
             android:id="@+id/login_out"
             android:layout_width="@dimen/dp_35"
@@ -106,12 +90,12 @@
     </LinearLayout>
 
     <Chronometer
-        android:layout_below="@+id/play_layout"
+        android:id="@+id/timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:layout_below="@+id/play_layout"
         android:format="00:00:00"
-        android:id="@+id/timer"/>
+        android:gravity="center" />
 
 
     <RelativeLayout

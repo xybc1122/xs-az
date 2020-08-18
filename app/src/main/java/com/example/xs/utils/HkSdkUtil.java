@@ -58,4 +58,18 @@ public class HkSdkUtil {
     public static boolean grabImgBlock(int playId, String path, int dwTimeOut) {
         return HCNetSDKJNAInstance.getInstance().NET_DVR_CapturePictureBlock(playId, path, dwTimeOut);
     }
+
+
+    //开始录屏api
+    public static boolean startRealData(int playId, int dwTransType, String path) {
+        return HCNetSDKJNAInstance.getInstance().NET_DVR_SaveRealData_V30(playId, dwTransType, path);
+    }
+
+
+    //停止录屏api
+    public static boolean stopRealData(int playId) {
+        return HCNetSDK.getInstance().NET_DVR_StopSaveRealData(playId);
+    }
+
+
 }

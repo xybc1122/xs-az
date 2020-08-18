@@ -29,7 +29,6 @@ import com.qmuiteam.qmui.widget.QMUITopBar;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
-import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 public class StartActivity extends Activity implements View.OnClickListener {
 
@@ -51,14 +50,12 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private Chronometer timer;
 
     //抓图
-    private QMUIRoundButton mRoundButton;
+    private ImageButton mScreenshot;
     //录制
-    private QMUIRoundButton mRecord;
+    private ImageButton mRecord;
     private PlaySurfaceView playSurfaceView;
 
     private PlaySurfaceViewInfo palyInfo;
-
-    private boolean m_bMultiPlay = false;
 
 
     private ImageButton left = null;
@@ -108,10 +105,22 @@ public class StartActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.record:
-                timer.setBase(SystemClock.elapsedRealtime());//计时器清零
-                int hour = (int) ((SystemClock.elapsedRealtime() - timer.getBase()) / 1000 / 60);
-                timer.setFormat("0" + String.valueOf(hour) + ":%s");
-                timer.start();
+                //开始录制
+                if (!isRecord) {
+                    mRecord.setImageResource(R.mipmap.lz_down);
+                    timer.setVisibility(View.VISIBLE);
+                    timer.setBase(SystemClock.elapsedRealtime());//计时器清零
+                    int hour = (int) ((SystemClock.elapsedRealtime() - timer.getBase()) / 1000 / 60);
+                    timer.setFormat("0" + String.valueOf(hour) + ":%s");
+                    timer.start();
+                    isRecord = true;
+                } else {
+                    timer.setVisibility(View.GONE);
+                    mRecord.setImageResource(R.mipmap.record);
+                    //停止录制
+                    isRecord = false;
+                }
+
                 break;
             case R.id.sub_img:
                 subImg(basePath, GenerateId.getUUid() + JPG);
@@ -167,13 +176,15 @@ public class StartActivity extends Activity implements View.OnClickListener {
     //隐藏元素
     public void linearChanged(boolean isChang) {
         if (isChang) {
-            mRoundButton.setVisibility(View.GONE);
+            mScreenshot.setVisibility(View.GONE);
             zoomIn.setVisibility(View.GONE);
             zoomOut.setVisibility(View.GONE);
+            mRecord.setVisibility(View.GONE);
         } else {
-            mRoundButton.setVisibility(View.VISIBLE);
+            mScreenshot.setVisibility(View.VISIBLE);
             zoomIn.setVisibility(View.VISIBLE);
             zoomOut.setVisibility(View.VISIBLE);
+            mRecord.setVisibility(View.VISIBLE);
         }
 
     }
@@ -182,7 +193,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
      * 抓图
      */
     public void subImg(String filePath, String fileName) {
-        mRoundButton.setBackgroundColor(getResources().getColor(R.color.sub_img_yellow_down));
+        mScreenshot.setImageResource(R.mipmap.jt_down);
         final QMUITipDialog tipDialog;
         if (playId <= 0) {
             tipDialog = MsgUtil.tipDialog(this, "请先播放视频", QMUITipDialog.Builder.ICON_TYPE_FAIL);
@@ -206,7 +217,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
             @Override
             public void run() {
                 tipDialog.dismiss();
-                mRoundButton.setBackgroundColor(getResources().getColor(R.color.sub_img_yellow));
+                mScreenshot.setImageResource(R.mipmap.jt);
             }
         }, 2 * 1000);
     }
@@ -286,7 +297,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private void setListeners() {
         mPlayAndStop.setOnClickListener(this);
         mLogOutBt.setOnClickListener(this);
-        mRoundButton.setOnClickListener(this);
+        mScreenshot.setOnClickListener(this);
         mRecord.setOnClickListener(this);
         zoomIn.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -418,8 +429,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     private void findViews() {
         mRecord = findViewById(R.id.record);
-        mRoundButton = findViewById(R.id.sub_img);
+        mScreenshot = findViewById(R.id.sub_img);
         timer = findViewById(R.id.timer);
+        timer.setVisibility(View.GONE);
         mTopBar = findViewById(R.id.topbar);
         reset = findViewById(R.id.reset);
         left = findViewById(R.id.left);
