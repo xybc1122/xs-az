@@ -6,7 +6,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.hikvision.netsdk.HCNetSDK;
+import com.example.xs.utils.HkSdkUtil;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
 
 public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callback {
@@ -55,7 +55,7 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
         m_hHolder.setFixedSize(m_iWidth, m_iHeight);//分辨率
     }
 
-    public int startPreview(int iUserID, int iChan) {
+    public int startPreview(int iLoginId, int iChan) {
         Log.i(TAG, "preview channel:" + iChan);
         while (!bCreate) {
             try {
@@ -71,18 +71,18 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
         previewInfo.dwStreamType = 0; //码流类型：0-主码流，1-子码流，
         previewInfo.bBlocked = 1; //0- 非阻塞取流，1- 阻塞取流
         previewInfo.hHwnd = m_hHolder; //播放窗口的句柄
-        int iPreviewHandle = HCNetSDK.getInstance().NET_DVR_RealPlay_V40(iUserID, previewInfo, null);
+        int iPreviewHandle = HkSdkUtil.playVideo(iLoginId, previewInfo, null);
         // 窗口句柄
         if (iPreviewHandle < 0) {
-            Log.e(TAG, "NET_DVR_RealPlay is failed!Err:" + HCNetSDK.getInstance().NET_DVR_GetLastError());
+            Log.e(TAG, "NET_DVR_RealPlay is failed!Err:" + HkSdkUtil.HkErrorNumber());
             return -1;
         }
         return iPreviewHandle;
 
     }
 
-    public void stopPreview(int iPreviewHandle) {
-        HCNetSDK.getInstance().NET_DVR_StopRealPlay(iPreviewHandle);
+    public boolean stopPreview(int iPreviewHandle) {
+        return HkSdkUtil.stopPlayVideo(iPreviewHandle);
     }
 
 }

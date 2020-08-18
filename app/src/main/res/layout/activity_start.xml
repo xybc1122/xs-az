@@ -12,7 +12,6 @@
         android:id="@+id/topbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/qmui_topbar_height" />
-
     <LinearLayout
         android:id="@+id/play_layout"
         android:layout_width="match_parent"
@@ -106,14 +105,20 @@
 
     </LinearLayout>
 
-
+    <Chronometer
+        android:layout_below="@+id/play_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:format="00:00:00"
+        android:id="@+id/timer"/>
 
 
     <RelativeLayout
         android:id="@+id/control_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/play_layout">
+        android:layout_below="@+id/timer">
 
         <ImageButton
             android:id="@+id/up"

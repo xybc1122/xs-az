@@ -4,25 +4,25 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Chronometer;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.example.xs.R;
-import com.example.xs.jna.HCNetSDKJNAInstance;
 import com.example.xs.mvp.model.PlaySurfaceViewInfo;
-import com.example.xs.service.StartActivityQMUIImpl;
 import com.example.xs.utils.GenerateId;
 import com.example.xs.utils.GlobalUtil;
+import com.example.xs.utils.HkSdkUtil;
 import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.PTZControlUtil;
 import com.example.xs.utils.ThreadUtil;
 import com.example.xs.views.PlaySurfaceView;
-import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.PTZCommand;
 import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
 import com.qmuiteam.qmui.widget.QMUITopBar;
@@ -39,15 +39,21 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private ImageButton mPlayAndStop = null;
     //播放按钮切换
     private boolean isOnPlay = false;
+    //录制切换按钮
+    private boolean isRecord = false;
     //播放句柄id
     private int playId = -1;
     //绝对路径
     private String basePath = "/sdcard/";
     //文件后缀
     private final static String JPG = ".jpg";
+    //时间录制计时器
+    private Chronometer timer;
 
     //抓图
     private QMUIRoundButton mRoundButton;
+    //录制
+    private QMUIRoundButton mRecord;
     private PlaySurfaceView playSurfaceView;
 
     private PlaySurfaceViewInfo palyInfo;
@@ -80,8 +86,6 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     private ImageButton zoomOut = null;
 
-    private int lRealHandle = 2;
-
     private QMUITopBar mTopBar;
 
     @Override
@@ -103,11 +107,13 @@ public class StartActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.record:
+                timer.setBase(SystemClock.elapsedRealtime());//计时器清零
+                int hour = (int) ((SystemClock.elapsedRealtime() - timer.getBase()) / 1000 / 60);
+                timer.setFormat("0" + String.valueOf(hour) + ":%s");
+                timer.start();
+                break;
             case R.id.sub_img:
-                if (playId <= 0) {
-                    MsgUtil.showDialog(this, "请先播放视频", QMUITipDialog.Builder.ICON_TYPE_FAIL);
-                    return;
-                }
                 subImg(basePath, GenerateId.getUUid() + JPG);
                 break;
             case R.id.play_and_stop:
@@ -177,16 +183,32 @@ public class StartActivity extends Activity implements View.OnClickListener {
      */
     public void subImg(String filePath, String fileName) {
         mRoundButton.setBackgroundColor(getResources().getColor(R.color.sub_img_yellow_down));
+        final QMUITipDialog tipDialog;
+        if (playId <= 0) {
+            tipDialog = MsgUtil.tipDialog(this, "请先播放视频", QMUITipDialog.Builder.ICON_TYPE_FAIL);
+            tipDialog.show();
+            closeSubImButton(tipDialog);
+            return;
+        }
         String path = filePath + fileName;
-        boolean isSub = HCNetSDKJNAInstance.getInstance().NET_DVR_CapturePictureBlock(playId, path, 0);
-        QMUITipDialog tipDialog;
+        boolean isSub = HkSdkUtil.grabImgBlock(playId, path, 0);
         if (isSub) {
             tipDialog = MsgUtil.tipDialog(this, "抓图成功", QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
         } else {
             tipDialog = MsgUtil.tipDialog(this, "抓图失败" + MsgUtil.errMsg(), QMUITipDialog.Builder.ICON_TYPE_FAIL);
         }
         tipDialog.show();
-        MsgUtil.stopHandlerMsg(tipDialog, 1500, new StartActivityQMUIImpl(mRoundButton, R.color.sub_img_yellow));
+        closeSubImButton(tipDialog);
+    }
+
+    private void closeSubImButton(final QMUITipDialog tipDialog) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                tipDialog.dismiss();
+                mRoundButton.setBackgroundColor(getResources().getColor(R.color.sub_img_yellow));
+            }
+        }, 2 * 1000);
     }
 
 
@@ -245,7 +267,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
     //    注销
     private void LogOut() {
         final QMUITipDialog tip;
-        boolean isLogOut = HCNetSDK.getInstance().NET_DVR_Logout_V30(GlobalUtil.loginInfo.getLoginId());
+        boolean isLogOut = HkSdkUtil.HkLogOut(GlobalUtil.loginInfo.getLoginId());
         if (!isLogOut) {
             tip = MsgUtil.tipDialog(this, "注销失败", QMUITipDialog.Builder.ICON_TYPE_FAIL);
             tip.show();
@@ -265,10 +287,11 @@ public class StartActivity extends Activity implements View.OnClickListener {
         mPlayAndStop.setOnClickListener(this);
         mLogOutBt.setOnClickListener(this);
         mRoundButton.setOnClickListener(this);
+        mRecord.setOnClickListener(this);
         zoomIn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, zoomIn);
+                setCommand(event, playId, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, zoomIn);
                 return true;
             }
         });
@@ -276,7 +299,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         zoomOut.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, zoomOut);
+                setCommand(event, playId, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, zoomOut);
                 return true;
             }
         });
@@ -284,7 +307,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         left.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.PAN_LEFT);
+                setCommand(event, playId, PTZCommand.PAN_LEFT);
                 return true;
             }
         });
@@ -292,7 +315,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         leftUp.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.UP_LEFT, R.mipmap.left_up_red, R.mipmap.left_up, leftUp);
+                setCommand(event, playId, PTZCommand.UP_LEFT, R.mipmap.left_up_red, R.mipmap.left_up, leftUp);
                 return true;
             }
         });
@@ -301,7 +324,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         leftDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.UP_LEFT);
+                setCommand(event, playId, PTZCommand.UP_LEFT);
                 return true;
             }
         });
@@ -310,7 +333,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         right.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.PAN_RIGHT);
+                setCommand(event, playId, PTZCommand.PAN_RIGHT);
                 return true;
             }
         });
@@ -319,7 +342,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         rightUp.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.UP_RIGHT);
+                setCommand(event, playId, PTZCommand.UP_RIGHT);
                 return true;
             }
         });
@@ -328,7 +351,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         rightDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.DOWN_RIGHT);
+                setCommand(event, playId, PTZCommand.DOWN_RIGHT);
                 return true;
             }
         });
@@ -337,7 +360,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         up.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.TILT_UP);
+                setCommand(event, playId, PTZCommand.TILT_UP);
                 return true;
             }
         });
@@ -345,7 +368,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         down.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.TILT_DOWN);
+                setCommand(event, playId, PTZCommand.TILT_DOWN);
                 return true;
             }
         });
@@ -353,7 +376,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         reset.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, lRealHandle, PTZCommand.PAN_AUTO);
+                setCommand(event, playId, PTZCommand.PAN_AUTO);
                 return true;
             }
         });
@@ -394,7 +417,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
     }
 
     private void findViews() {
+        mRecord = findViewById(R.id.record);
         mRoundButton = findViewById(R.id.sub_img);
+        timer = findViewById(R.id.timer);
         mTopBar = findViewById(R.id.topbar);
         reset = findViewById(R.id.reset);
         left = findViewById(R.id.left);

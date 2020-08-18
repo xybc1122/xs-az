@@ -2,7 +2,6 @@ package com.example.xs.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -87,7 +86,6 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
         mTopBar.setBackgroundColor(getResources().getColor(R.color.qmui_btn_blue_bg));
         mTopBar.setTitle("实时预览").setTextColor(getResources().getColor(R.color.qmui_config_color_white));
         rightImageButton = mTopBar.addRightImageButton(R.mipmap.play_list, R.id.play);
-        final Handler handler = new Handler();
         rightImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

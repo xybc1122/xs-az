@@ -3,7 +3,6 @@ package com.example.xs.utils;
 import android.content.Context;
 import android.os.Handler;
 
-import com.example.xs.service.Execution;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.INT_PTR;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
@@ -32,16 +31,6 @@ public class MsgUtil {
         }, delayMillis);
     }
 
-
-    public static void stopHandlerMsg(final QMUITipDialog tipDialog, long delayMillis, final Execution exe) {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                exe.execution();
-                tipDialog.dismiss();
-            }
-        }, delayMillis);
-    }
 
     public static String errMsg() {
         INT_PTR ptr = new INT_PTR();

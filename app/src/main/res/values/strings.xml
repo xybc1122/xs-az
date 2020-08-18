@@ -7,4 +7,6 @@
     <string name="password">密码</string>
     <string name="login">连接</string>
     <string name="ip">ip</string>
+    <string name="login_error">账号或密码错误</string>
+    <string name="device_error">连接设备异常，请检查wifi是否跟设备连接</string>
 </resources>

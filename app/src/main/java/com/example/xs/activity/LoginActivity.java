@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -12,8 +11,8 @@ import android.widget.ImageButton;
 import com.example.xs.R;
 import com.example.xs.mvp.model.LoginInfo;
 import com.example.xs.utils.GlobalUtil;
+import com.example.xs.utils.HkSdkUtil;
 import com.example.xs.utils.MsgUtil;
-import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_DEVICEINFO_V30;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
@@ -38,7 +37,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        if (!initSdk()) {
+        if (!HkSdkUtil.initSdk()) {
             this.finish();
             return;
         }
@@ -87,7 +86,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                m_iLogID = HCNetSDK.getInstance().NET_DVR_Login_V30(strIp, nPort, strUserName, strPwd, m_oNetDvrDeviceInfoV30);
+                m_iLogID = HkSdkUtil.HkLogin(strIp, nPort, strUserName, strPwd, m_oNetDvrDeviceInfoV30);
             }
         });
         thread.start();
@@ -98,12 +97,12 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         }
         if (m_iLogID < 0) {
             final QMUITipDialog tipDialog;
-            switch (HCNetSDK.getInstance().NET_DVR_GetLastError()) {
+            switch (HkSdkUtil.HkErrorNumber()) {
                 case 1:
-                    tipDialog = MsgUtil.tipDialog(this, "账号或密码错误", QMUITipDialog.Builder.ICON_TYPE_FAIL);
+                    tipDialog = MsgUtil.tipDialog(this, getString(R.string.login_error), QMUITipDialog.Builder.ICON_TYPE_FAIL);
                     break;
                 default:
-                    tipDialog = MsgUtil.tipDialog(this, "连接设备异常，请检查wifi是否跟设备连接", QMUITipDialog.Builder.ICON_TYPE_FAIL);
+                    tipDialog = MsgUtil.tipDialog(this, getString(R.string.device_error), QMUITipDialog.Builder.ICON_TYPE_FAIL);
             }
             tipDialog.show();
             MsgUtil.stopHandlerMsg(tipDialog, 2000);
@@ -138,19 +137,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private boolean initActivity() {
         findViews();
         setListeners();
-        return true;
-    }
-
-    /**
-     * 初始化SDK
-     */
-    private boolean initSdk() {
-        // init net sdk
-        if (!HCNetSDK.getInstance().NET_DVR_Init()) {
-            Log.e(TAG, "HCNetSDK init is failed!");
-            return false;
-        }
-        HCNetSDK.getInstance().NET_DVR_SetLogToFile(3, "/storage/emulated/0/sdklog/", true);
         return true;
     }
 
