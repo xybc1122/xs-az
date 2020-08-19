@@ -61,7 +61,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private PlaySurfaceView playSurfaceView;
     //播放信息
     private PlaySurfaceViewInfo palyInfo;
-    //
+    //云台操控布局
     private RelativeLayout mRelativeLayout;
 
     private ImageButton left = null;
@@ -75,7 +75,6 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private ImageButton rightUp = null;
 
     private ImageButton rightDown = null;
-
 
     private ImageButton up = null;
 
@@ -346,7 +345,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         zoomIn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, zoomIn);
+                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, zoomIn);
                 return true;
             }
         });
@@ -354,7 +353,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         zoomOut.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, zoomOut);
+                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, zoomOut);
                 return true;
             }
         });
@@ -362,7 +361,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         left.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.PAN_LEFT);
+                setCommand(event, PTZCommand.PAN_LEFT);
                 return true;
             }
         });
@@ -370,7 +369,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         leftUp.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.UP_LEFT, R.mipmap.left_up_red, R.mipmap.left_up, leftUp);
+                setCommand(event, PTZCommand.UP_LEFT, R.mipmap.left_up_red, R.mipmap.left_up, leftUp);
                 return true;
             }
         });
@@ -379,7 +378,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         leftDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.UP_LEFT);
+                setCommand(event, PTZCommand.UP_LEFT);
                 return true;
             }
         });
@@ -388,7 +387,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         right.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.PAN_RIGHT);
+                setCommand(event, PTZCommand.PAN_RIGHT);
                 return true;
             }
         });
@@ -397,7 +396,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         rightUp.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.UP_RIGHT);
+                setCommand(event, PTZCommand.UP_RIGHT);
                 return true;
             }
         });
@@ -406,7 +405,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         rightDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.DOWN_RIGHT);
+                setCommand(event, PTZCommand.DOWN_RIGHT);
                 return true;
             }
         });
@@ -415,7 +414,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         up.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.TILT_UP);
+                setCommand(event, PTZCommand.TILT_UP);
                 return true;
             }
         });
@@ -423,7 +422,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         down.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.TILT_DOWN);
+                setCommand(event, PTZCommand.TILT_DOWN);
                 return true;
             }
         });
@@ -431,26 +430,26 @@ public class StartActivity extends Activity implements View.OnClickListener {
         reset.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, playId, PTZCommand.PAN_AUTO);
+                setCommand(event, PTZCommand.PAN_AUTO);
                 return true;
             }
         });
     }
 
-    private void setCommand(MotionEvent event, int handel, int command) {
+    private void setCommand(MotionEvent event, int command) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                PTZControl(handel, command, 0);
+                PTZControl(command, 0);
                 break;
             case MotionEvent.ACTION_UP:
-                PTZControl(handel, command, 1);
+                PTZControl(command, 1);
                 break;
         }
     }
 
 
-    public void PTZControl(int lRealHandle, int dwPTZCommand, int dwStop) {
-        if (!HkSdkUtil.cloudOpera(lRealHandle, dwPTZCommand, dwStop)) {
+    public void PTZControl(int dwPTZCommand, int dwStop) {
+        if (!HkSdkUtil.cloudOpera(playId, dwPTZCommand, dwStop)) {
             String msg = "操作失败..." + MsgUtil.errMsg();
             if (MsgUtil.errMsgLast() == 23) {
                 msg = getString(R.string.not_support);
@@ -472,14 +471,14 @@ public class StartActivity extends Activity implements View.OnClickListener {
      * @param upColor     抬起的图标
      * @param imageButton
      */
-    private void setCommand(MotionEvent event, int handel, int command, int downColor, int upColor, ImageButton imageButton) {
+    private void setCommand(MotionEvent event, int command, int downColor, int upColor, ImageButton imageButton) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 imageButton.setImageResource(downColor);
-                PTZControl(handel, command, 0);
+                PTZControl(command, 0);
                 break;
             case MotionEvent.ACTION_UP:
-                PTZControl(handel, command, 1);
+                PTZControl(command, 1);
                 imageButton.setImageResource(upColor);
                 break;
         }
