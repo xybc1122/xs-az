@@ -31,11 +31,17 @@ public class MsgUtil {
         }, delayMillis);
     }
 
-
+    //获得错误码返回字符串信息
     public static String errMsg() {
         INT_PTR ptr = new INT_PTR();
         ptr.iValue = HCNetSDK.getInstance().NET_DVR_GetLastError();
         return HCNetSDK.getInstance().NET_DVR_GetErrorMsg(ptr);
+
+    }
+
+    //获得错误码
+    public static int errMsgLast() {
+        return HCNetSDK.getInstance().NET_DVR_GetLastError();
 
     }
 }

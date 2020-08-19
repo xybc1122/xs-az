@@ -32,7 +32,16 @@
             android:scaleType="centerCrop"
             android:src="@mipmap/play" />
 
-
+        <ImageButton
+            android:id="@+id/login_out"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/log_out" />
         <ImageButton
             android:id="@+id/zoom_in"
             android:layout_width="@dimen/dp_35"
@@ -60,8 +69,8 @@
             android:layout_width="@dimen/dp_30"
             android:layout_height="@dimen/dp_30"
             android:layout_gravity="center"
-            android:clickable="true"
             android:layout_marginRight="@dimen/dp_6"
+            android:clickable="true"
             android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/jt" />
@@ -72,20 +81,9 @@
             android:layout_height="@dimen/dp_35"
             android:layout_gravity="center"
             android:clickable="true"
-            android:layout_marginRight="@dimen/dp_6"
             android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/record" />
-
-        <ImageButton
-            android:id="@+id/login_out"
-            android:layout_width="@dimen/dp_35"
-            android:layout_height="@dimen/dp_35"
-            android:layout_gravity="center"
-            android:clickable="true"
-            android:gravity="center"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/log_out" />
 
     </LinearLayout>
 

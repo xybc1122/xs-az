@@ -16,11 +16,11 @@ import android.widget.RelativeLayout;
 
 import com.example.xs.R;
 import com.example.xs.mvp.model.PlaySurfaceViewInfo;
+import com.example.xs.utils.DateUtil;
 import com.example.xs.utils.GenerateId;
 import com.example.xs.utils.GlobalUtil;
 import com.example.xs.utils.HkSdkUtil;
 import com.example.xs.utils.MsgUtil;
-import com.example.xs.utils.PTZControlUtil;
 import com.example.xs.utils.ThreadUtil;
 import com.example.xs.views.PlaySurfaceView;
 import com.hikvision.netsdk.PTZCommand;
@@ -29,6 +29,8 @@ import com.qmuiteam.qmui.widget.QMUITopBar;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+
+import java.io.File;
 
 public class StartActivity extends Activity implements View.OnClickListener {
 
@@ -44,8 +46,10 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private int playId = -1;
     //绝对路径
     private String basePath = "/sdcard/";
-    //文件后缀
+    //图片后缀
     private final static String JPG = ".jpg";
+    //视频后缀
+    private final static String MP4 = ".mp4";
     //时间录制计时器
     private Chronometer timer;
 
@@ -53,10 +57,12 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private ImageButton mScreenshot;
     //录制
     private ImageButton mRecord;
+    //视频播放控件
     private PlaySurfaceView playSurfaceView;
-
+    //播放信息
     private PlaySurfaceViewInfo palyInfo;
-
+    //
+    private RelativeLayout mRelativeLayout;
 
     private ImageButton left = null;
 
@@ -97,28 +103,51 @@ public class StartActivity extends Activity implements View.OnClickListener {
         createView();
         Intent intent = getIntent();
         palyInfo = (PlaySurfaceViewInfo) intent.getSerializableExtra("playInfo");
-        RelativeLayout relativeLayout = findViewById(R.id.control_layout);
-        relativeLayout.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.record:
+                if (!isPlay()) {
+                    return;
+                }
+                String path = basePath + DateUtil.getNow() + GenerateId.getUUid() + MP4;
                 //开始录制
                 if (!isRecord) {
-                    mRecord.setImageResource(R.mipmap.lz_down);
-                    timer.setVisibility(View.VISIBLE);
-                    timer.setBase(SystemClock.elapsedRealtime());//计时器清零
-                    int hour = (int) ((SystemClock.elapsedRealtime() - timer.getBase()) / 1000 / 60);
-                    timer.setFormat("0" + String.valueOf(hour) + ":%s");
-                    timer.start();
-                    isRecord = true;
+                    if (HkSdkUtil.startRealData(playId, 0x2, path)) {
+                        MsgUtil.showDialog(this, "开始录制...", QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+                        mRecord.setImageResource(R.mipmap.lz_down);
+                        timer.setVisibility(View.VISIBLE);
+                        timer.setBase(SystemClock.elapsedRealtime());//计时器清零
+                        int hour = (int) ((SystemClock.elapsedRealtime() - timer.getBase()) / 1000 / 60);
+                        timer.setFormat("0" + hour + ":%s");
+                        timer.start();
+                        isRecord = true;
+                        return;
+                    }
+                    String msg = "录制失败..." + MsgUtil.errMsg();
+                    int errLast = MsgUtil.errMsgLast();
+                    if (errLast == 581) {
+                        msg = getString(R.string.not_support);
+                    }
+                    MsgUtil.showDialog(this, msg, QMUITipDialog.Builder.ICON_TYPE_FAIL);
+                    //删除文件
+                    File file = new File(path);
+                    //删除手机中视频
+                    if (!file.delete()) {
+                        Log.i(TAG, "删除文件失败");
+                    }
                 } else {
-                    timer.setVisibility(View.GONE);
-                    mRecord.setImageResource(R.mipmap.record);
-                    //停止录制
-                    isRecord = false;
+                    if (HkSdkUtil.stopPlayVideo(playId)) {
+                        MsgUtil.showDialog(this, "停止录制...", QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+                        timer.setVisibility(View.GONE);
+                        mRecord.setImageResource(R.mipmap.record);
+                        //停止录制
+                        isRecord = false;
+                        return;
+                    }
+                    MsgUtil.showDialog(this, "停止录制失败..." + MsgUtil.errMsg(), QMUITipDialog.Builder.ICON_TYPE_FAIL);
                 }
 
                 break;
@@ -176,15 +205,17 @@ public class StartActivity extends Activity implements View.OnClickListener {
     //隐藏元素
     public void linearChanged(boolean isChang) {
         if (isChang) {
-            mScreenshot.setVisibility(View.GONE);
-            zoomIn.setVisibility(View.GONE);
-            zoomOut.setVisibility(View.GONE);
-            mRecord.setVisibility(View.GONE);
+            mScreenshot.setVisibility(View.INVISIBLE);
+            zoomIn.setVisibility(View.INVISIBLE);
+            zoomOut.setVisibility(View.INVISIBLE);
+            mRecord.setVisibility(View.INVISIBLE);
+            mRelativeLayout.setVisibility(View.INVISIBLE);
         } else {
             mScreenshot.setVisibility(View.VISIBLE);
             zoomIn.setVisibility(View.VISIBLE);
             zoomOut.setVisibility(View.VISIBLE);
             mRecord.setVisibility(View.VISIBLE);
+            mRelativeLayout.setVisibility(View.VISIBLE);
         }
 
     }
@@ -194,13 +225,10 @@ public class StartActivity extends Activity implements View.OnClickListener {
      */
     public void subImg(String filePath, String fileName) {
         mScreenshot.setImageResource(R.mipmap.jt_down);
-        final QMUITipDialog tipDialog;
-        if (playId <= 0) {
-            tipDialog = MsgUtil.tipDialog(this, "请先播放视频", QMUITipDialog.Builder.ICON_TYPE_FAIL);
-            tipDialog.show();
-            closeSubImButton(tipDialog);
+        if (!isPlay()) {
             return;
         }
+        final QMUITipDialog tipDialog;
         String path = filePath + fileName;
         boolean isSub = HkSdkUtil.grabImgBlock(playId, path, 0);
         if (isSub) {
@@ -210,6 +238,22 @@ public class StartActivity extends Activity implements View.OnClickListener {
         }
         tipDialog.show();
         closeSubImButton(tipDialog);
+    }
+
+    /**
+     * 是否在播放
+     *
+     * @return
+     */
+    private boolean isPlay() {
+        QMUITipDialog tipDialog;
+        if (playId <= 0) {
+            tipDialog = MsgUtil.tipDialog(this, "请先播放视频", QMUITipDialog.Builder.ICON_TYPE_FAIL);
+            tipDialog.show();
+            closeSubImButton(tipDialog);
+            return false;
+        }
+        return true;
     }
 
     private void closeSubImButton(final QMUITipDialog tipDialog) {
@@ -396,13 +440,27 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private void setCommand(MotionEvent event, int handel, int command) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                PTZControlUtil.PTZControl(handel, command, 0);
+                PTZControl(handel, command, 0);
                 break;
             case MotionEvent.ACTION_UP:
-                PTZControlUtil.PTZControl(handel, command, 1);
+                PTZControl(handel, command, 1);
                 break;
         }
     }
+
+
+    public void PTZControl(int lRealHandle, int dwPTZCommand, int dwStop) {
+        if (!HkSdkUtil.cloudOpera(lRealHandle, dwPTZCommand, dwStop)) {
+            String msg = "操作失败..." + MsgUtil.errMsg();
+            if (MsgUtil.errMsgLast() == 23) {
+                msg = getString(R.string.not_support);
+            }
+            MsgUtil.showDialog(this, msg, QMUITipDialog.Builder.ICON_TYPE_FAIL);
+            return;
+        }
+        System.out.println("PTZControl  PAN_LEFT 0 succ");
+    }
+
 
     /**
      * '
@@ -418,16 +476,17 @@ public class StartActivity extends Activity implements View.OnClickListener {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 imageButton.setImageResource(downColor);
-                PTZControlUtil.PTZControl(handel, command, 0);
+                PTZControl(handel, command, 0);
                 break;
             case MotionEvent.ACTION_UP:
-                PTZControlUtil.PTZControl(handel, command, 1);
+                PTZControl(handel, command, 1);
                 imageButton.setImageResource(upColor);
                 break;
         }
     }
 
     private void findViews() {
+        mRelativeLayout = findViewById(R.id.control_layout);
         mRecord = findViewById(R.id.record);
         mScreenshot = findViewById(R.id.sub_img);
         timer = findViewById(R.id.timer);
