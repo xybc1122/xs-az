@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Chronometer;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -38,10 +39,14 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     private ImageButton mLogOutBt = null;
     private ImageButton mPlayAndStop = null;
-    //播放按钮切换
+    //播放按钮切换控制
     private boolean isOnPlay = false;
-    //录制切换按钮
+    //录制切换按钮控制
     private boolean isRecord = false;
+    //回放视频按钮控制
+    private boolean isRePlay = false;
+    //是否支持云台操作
+    private boolean isCommand = false;
     //播放句柄id
     private int playId = -1;
     //绝对路径
@@ -51,8 +56,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
     //视频后缀
     private final static String MP4 = ".mp4";
     //时间录制计时器
-    private Chronometer timer;
-
+    private Chronometer mTimer;
     //抓图
     private ImageButton mScreenshot;
     //录制
@@ -63,6 +67,18 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private PlaySurfaceViewInfo palyInfo;
     //云台操控布局
     private RelativeLayout mRelativeLayout;
+    //开始选择回放时间
+    private LinearLayout startLinearLayout;
+    //结束 选择回放时间
+    private LinearLayout endLinearLayout;
+
+    //年/月/日
+    private EditText mStartDatePickerTimeEditY;
+    //时:分
+    private EditText mStarTimePickerEditH;
+
+    //回放按钮
+    private ImageButton mReplay;
 
     private ImageButton left = null;
 
@@ -83,10 +99,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     private ImageButton reset = null;
 
-    private ImageButton zoomIn = null;
+    private ImageButton ytZoomIn = null;
 
-
-    private ImageButton zoomOut = null;
+    private ImageButton ytZoomOut = null;
 
     private QMUITopBar mTopBar;
 
@@ -104,9 +119,58 @@ public class StartActivity extends Activity implements View.OnClickListener {
         palyInfo = (PlaySurfaceViewInfo) intent.getSerializableExtra("playInfo");
     }
 
+    private void findViews() {
+        mStartDatePickerTimeEditY = findViewById(R.id.start_dp_time_edit_y);
+        mStarTimePickerEditH = findViewById(R.id.start_tp_time_edit_h);
+        mReplay = findViewById(R.id.replay);
+        mRelativeLayout = findViewById(R.id.control_layout);
+        mRecord = findViewById(R.id.record);
+        mScreenshot = findViewById(R.id.sub_img);
+        mTimer = findViewById(R.id.timer);
+        mTimer.setVisibility(View.GONE);
+        startLinearLayout = findViewById(R.id.start_layout);
+        startLinearLayout.setVisibility(View.GONE);
+        mTopBar = findViewById(R.id.topbar);
+        reset = findViewById(R.id.reset);
+        left = findViewById(R.id.left);
+        leftUp = findViewById(R.id.left_up);
+        leftDown = findViewById(R.id.left_down);
+        right = findViewById(R.id.right);
+        rightUp = findViewById(R.id.right_up);
+        rightDown = findViewById(R.id.right_down);
+        up = findViewById(R.id.up);
+        down = findViewById(R.id.down);
+
+        mPlayAndStop = findViewById(R.id.play_and_stop);
+        mLogOutBt = findViewById(R.id.login_out);
+
+        ytZoomIn = findViewById(R.id.zoom_in);
+
+        ytZoomOut = findViewById(R.id.zoom_out);
+
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.replay:
+                if (isOnPlay) {
+                    MsgUtil.showDialogFail(this, "请先停止实施预览...");
+                    return;
+                }
+                //在回放中
+                if (!isRePlay) {
+                    mReplay.setImageResource(R.mipmap.replay_down);
+                    mStartDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
+                    mStarTimePickerEditH.setText(DateUtil.getCalendarZeroH());
+                    startLinearLayout.setVisibility(View.VISIBLE);
+                    isRePlay = true;
+                } else {
+                    mReplay.setImageResource(R.mipmap.replay);
+                    startLinearLayout.setVisibility(View.GONE);
+                    isRePlay = false;
+                }
+                break;
             case R.id.record:
                 if (!isPlay()) {
                     return;
@@ -115,13 +179,13 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 //开始录制
                 if (!isRecord) {
                     if (HkSdkUtil.startRealData(playId, 0x2, path)) {
-                        MsgUtil.showDialog(this, "开始录制...", QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+                        MsgUtil.showDialogSuccess(this, "开始录制...");
                         mRecord.setImageResource(R.mipmap.lz_down);
-                        timer.setVisibility(View.VISIBLE);
-                        timer.setBase(SystemClock.elapsedRealtime());//计时器清零
-                        int hour = (int) ((SystemClock.elapsedRealtime() - timer.getBase()) / 1000 / 60);
-                        timer.setFormat("0" + hour + ":%s");
-                        timer.start();
+                        mTimer.setVisibility(View.VISIBLE);
+                        mTimer.setBase(SystemClock.elapsedRealtime());//计时器清零
+                        int hour = (int) ((SystemClock.elapsedRealtime() - mTimer.getBase()) / 1000 / 60);
+                        mTimer.setFormat("0" + hour + ":%s");
+                        mTimer.start();
                         isRecord = true;
                         return;
                     }
@@ -130,7 +194,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
                     if (errLast == 581) {
                         msg = getString(R.string.not_support);
                     }
-                    MsgUtil.showDialog(this, msg, QMUITipDialog.Builder.ICON_TYPE_FAIL);
+                    MsgUtil.showDialogFail(this, msg);
                     //删除文件
                     File file = new File(path);
                     //删除手机中视频
@@ -139,14 +203,14 @@ public class StartActivity extends Activity implements View.OnClickListener {
                     }
                 } else {
                     if (HkSdkUtil.stopPlayVideo(playId)) {
-                        MsgUtil.showDialog(this, "停止录制...", QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
-                        timer.setVisibility(View.GONE);
+                        MsgUtil.showDialogSuccess(this, "停止录制...");
+                        mTimer.setVisibility(View.GONE);
                         mRecord.setImageResource(R.mipmap.record);
                         //停止录制
                         isRecord = false;
                         return;
                     }
-                    MsgUtil.showDialog(this, "停止录制失败..." + MsgUtil.errMsg(), QMUITipDialog.Builder.ICON_TYPE_FAIL);
+                    MsgUtil.showDialogFail(this, "停止录制失败..." + MsgUtil.errMsg());
                 }
 
                 break;
@@ -154,6 +218,11 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 subImg(basePath, GenerateId.getUUid() + JPG);
                 break;
             case R.id.play_and_stop:
+                //如果在回放
+                if (isRePlay) {
+                    MsgUtil.showDialogFail(this, "请先关闭回放...");
+                    return;
+                }
                 final Handler handler = new Handler();
                 QMUITipDialog tipDialog = MsgUtil.tipDialog(this, !isOnPlay ? "视频加载中..." : "视频关闭中...", QMUITipDialog.Builder.ICON_TYPE_LOADING);
                 tipDialog.show();
@@ -205,14 +274,14 @@ public class StartActivity extends Activity implements View.OnClickListener {
     public void linearChanged(boolean isChang) {
         if (isChang) {
             mScreenshot.setVisibility(View.INVISIBLE);
-            zoomIn.setVisibility(View.INVISIBLE);
-            zoomOut.setVisibility(View.INVISIBLE);
+            ytZoomIn.setVisibility(View.INVISIBLE);
+            ytZoomOut.setVisibility(View.INVISIBLE);
             mRecord.setVisibility(View.INVISIBLE);
-            mRelativeLayout.setVisibility(View.INVISIBLE);
+            mRelativeLayout.setVisibility(View.GONE);
         } else {
             mScreenshot.setVisibility(View.VISIBLE);
-            zoomIn.setVisibility(View.VISIBLE);
-            zoomOut.setVisibility(View.VISIBLE);
+            ytZoomIn.setVisibility(View.VISIBLE);
+            ytZoomOut.setVisibility(View.VISIBLE);
             mRecord.setVisibility(View.VISIBLE);
             mRelativeLayout.setVisibility(View.VISIBLE);
         }
@@ -342,18 +411,19 @@ public class StartActivity extends Activity implements View.OnClickListener {
         mLogOutBt.setOnClickListener(this);
         mScreenshot.setOnClickListener(this);
         mRecord.setOnClickListener(this);
-        zoomIn.setOnTouchListener(new View.OnTouchListener() {
+        mReplay.setOnClickListener(this);
+        ytZoomIn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, zoomIn);
+                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, ytZoomIn);
                 return true;
             }
         });
 
-        zoomOut.setOnTouchListener(new View.OnTouchListener() {
+        ytZoomOut.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, zoomOut);
+                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, ytZoomOut);
                 return true;
             }
         });
@@ -442,6 +512,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 PTZControl(command, 0);
                 break;
             case MotionEvent.ACTION_UP:
+                if (!isCommand) {
+                    return;
+                }
                 PTZControl(command, 1);
                 break;
         }
@@ -449,12 +522,13 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
 
     public void PTZControl(int dwPTZCommand, int dwStop) {
-        if (!HkSdkUtil.cloudOpera(playId, dwPTZCommand, dwStop)) {
+        isCommand = HkSdkUtil.cloudOpera(playId, dwPTZCommand, dwStop);
+        if (!isCommand) {
             String msg = "操作失败..." + MsgUtil.errMsg();
             if (MsgUtil.errMsgLast() == 23) {
                 msg = getString(R.string.not_support);
             }
-            MsgUtil.showDialog(this, msg, QMUITipDialog.Builder.ICON_TYPE_FAIL);
+            MsgUtil.showDialog(this, msg, QMUITipDialog.Builder.ICON_TYPE_FAIL, 1000L);
             return;
         }
         System.out.println("PTZControl  PAN_LEFT 0 succ");
@@ -478,36 +552,14 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 PTZControl(command, 0);
                 break;
             case MotionEvent.ACTION_UP:
+                if (!isCommand) {
+                    imageButton.setImageResource(upColor);
+                    return;
+                }
                 PTZControl(command, 1);
                 imageButton.setImageResource(upColor);
                 break;
         }
-    }
-
-    private void findViews() {
-        mRelativeLayout = findViewById(R.id.control_layout);
-        mRecord = findViewById(R.id.record);
-        mScreenshot = findViewById(R.id.sub_img);
-        timer = findViewById(R.id.timer);
-        timer.setVisibility(View.GONE);
-        mTopBar = findViewById(R.id.topbar);
-        reset = findViewById(R.id.reset);
-        left = findViewById(R.id.left);
-        leftUp = findViewById(R.id.left_up);
-        leftDown = findViewById(R.id.left_down);
-        right = findViewById(R.id.right);
-        rightUp = findViewById(R.id.right_up);
-        rightDown = findViewById(R.id.right_down);
-        up = findViewById(R.id.up);
-        down = findViewById(R.id.down);
-
-        mPlayAndStop = findViewById(R.id.play_and_stop);
-        mLogOutBt = findViewById(R.id.login_out);
-
-        zoomIn = findViewById(R.id.zoom_in);
-
-        zoomOut = findViewById(R.id.zoom_out);
-
     }
 
 

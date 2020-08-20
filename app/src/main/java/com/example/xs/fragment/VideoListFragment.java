@@ -142,7 +142,7 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onClick(View v) {
         if (!isPlay) {
-            MsgUtil.showDialog(getActivity(), "请先点击右上角播放按钮", QMUITipDialog.Builder.ICON_TYPE_FAIL);
+            MsgUtil.showDialogFail(getActivity(), "请先点击右上角播放按钮");
             return;
         }
         int index = 0;

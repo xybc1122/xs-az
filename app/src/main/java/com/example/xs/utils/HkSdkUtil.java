@@ -11,6 +11,7 @@ import com.hikvision.netsdk.RealPlayCallBack;
 public class HkSdkUtil {
     private final static String TAG = HkSdkUtil.class.getName();
 
+
     /**
      * 初始化SDK
      */
@@ -50,7 +51,7 @@ public class HkSdkUtil {
     }
 
     //云台操作api
-    public static boolean cloudOpera(int playId, int dwPTZCommand, int dwStop) {
+    public static boolean cloudOpera(final int playId, final int dwPTZCommand, final int dwStop) {
         return HCNetSDK.getInstance().NET_DVR_PTZControl(playId, dwPTZCommand, dwStop);
     }
 

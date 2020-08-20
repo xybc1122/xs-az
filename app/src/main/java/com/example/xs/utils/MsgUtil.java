@@ -9,10 +9,29 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 public class MsgUtil {
 
+    public static void showDialogFail(Context context, String text) {
+        QMUITipDialog tipDialog = tipDialog(context, text, QMUITipDialog.Builder.ICON_TYPE_FAIL);
+        tipDialog.show();
+        stopHandlerMsg(tipDialog, 2000);
+    }
+
+    public static void showDialogSuccess(Context context, String text) {
+        QMUITipDialog tipDialog = tipDialog(context, text, QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+        tipDialog.show();
+        stopHandlerMsg(tipDialog, 2000);
+    }
+
+
     public static void showDialog(Context context, String text, int type) {
         QMUITipDialog tipDialog = tipDialog(context, text, type);
         tipDialog.show();
         stopHandlerMsg(tipDialog, 2000);
+    }
+
+    public static void showDialog(Context context, String text, int type, long delayMillis) {
+        QMUITipDialog tipDialog = tipDialog(context, text, type);
+        tipDialog.show();
+        stopHandlerMsg(tipDialog, delayMillis);
     }
 
     public static QMUITipDialog tipDialog(Context context, String text, int type) {
