@@ -11,6 +11,19 @@ public class PlaySurfaceViewInfo implements Serializable {
      * 播放id 代码 m_iStartChan
      */
     private int playTartChan;
+    /**
+     * 是否能播放
+     */
+    private boolean isPlay;
+
+
+    public boolean getIsPlay() {
+        return isPlay;
+    }
+
+    public void setIsPlay(boolean play) {
+        isPlay = play;
+    }
 
     public int getPlayId() {
         return playId;

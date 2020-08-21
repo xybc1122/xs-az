@@ -1,6 +1,9 @@
 package com.example.xs.activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,10 +13,12 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Chronometer;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TimePicker;
 
 import com.example.xs.R;
 import com.example.xs.mvp.model.PlaySurfaceViewInfo;
@@ -30,8 +35,10 @@ import com.qmuiteam.qmui.widget.QMUITopBar;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 import java.io.File;
+import java.util.Calendar;
 
 public class StartActivity extends Activity implements View.OnClickListener {
 
@@ -77,8 +84,15 @@ public class StartActivity extends Activity implements View.OnClickListener {
     //时:分
     private EditText mStarTimePickerEditH;
 
-    //回放按钮
+    //年/月/日
+    private EditText mEndDatePickerTimeEditY;
+    //时:分
+    private EditText mEndTimePickerEditH;
+
+    //点击回放按钮显示
     private ImageButton mReplay;
+    //确认回放按钮播放
+    private QMUIRoundButton mReQMUIPlay;
 
     private ImageButton left = null;
 
@@ -120,8 +134,12 @@ public class StartActivity extends Activity implements View.OnClickListener {
     }
 
     private void findViews() {
+        mReQMUIPlay = findViewById(R.id.re_qmui_play);
+        mReQMUIPlay.setVisibility(View.GONE);
         mStartDatePickerTimeEditY = findViewById(R.id.start_dp_time_edit_y);
         mStarTimePickerEditH = findViewById(R.id.start_tp_time_edit_h);
+        mEndDatePickerTimeEditY = findViewById(R.id.end_dp_time_edit_y);
+        mEndTimePickerEditH = findViewById(R.id.end_tp_time_edit_h);
         mReplay = findViewById(R.id.replay);
         mRelativeLayout = findViewById(R.id.control_layout);
         mRecord = findViewById(R.id.record);
@@ -129,7 +147,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
         mTimer = findViewById(R.id.timer);
         mTimer.setVisibility(View.GONE);
         startLinearLayout = findViewById(R.id.start_layout);
+        endLinearLayout = findViewById(R.id.end_layout);
         startLinearLayout.setVisibility(View.GONE);
+        endLinearLayout.setVisibility(View.GONE);
         mTopBar = findViewById(R.id.topbar);
         reset = findViewById(R.id.reset);
         left = findViewById(R.id.left);
@@ -153,6 +173,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.re_qmui_play:
+                System.out.println("mReQMUIPlay");
+                break;
             case R.id.replay:
                 if (isOnPlay) {
                     MsgUtil.showDialogFail(this, "请先停止实施预览...");
@@ -160,15 +183,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 }
                 //在回放中
                 if (!isRePlay) {
-                    mReplay.setImageResource(R.mipmap.replay_down);
-                    mStartDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
-                    mStarTimePickerEditH.setText(DateUtil.getCalendarZeroH());
-                    startLinearLayout.setVisibility(View.VISIBLE);
-                    isRePlay = true;
+                    rePlayChanged(false);
                 } else {
-                    mReplay.setImageResource(R.mipmap.replay);
-                    startLinearLayout.setVisibility(View.GONE);
-                    isRePlay = false;
+                    rePlayChanged(true);
                 }
                 break;
             case R.id.record:
@@ -267,6 +284,26 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 this.finish();
                 startActivity(intent);
                 break;
+        }
+    }
+
+    public void rePlayChanged(boolean isChang) {
+        if (!isChang) {
+            mReplay.setImageResource(R.mipmap.replay_down);
+            mStartDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
+            mStarTimePickerEditH.setText(DateUtil.getCalendarZeroH());
+            startLinearLayout.setVisibility(View.VISIBLE);
+            mEndDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
+            mEndTimePickerEditH.setText(DateUtil.getCalendarNowZeroH());
+            endLinearLayout.setVisibility(View.VISIBLE);
+            mReQMUIPlay.setVisibility(View.VISIBLE);
+            isRePlay = true;
+        } else {
+            mReplay.setImageResource(R.mipmap.replay);
+            startLinearLayout.setVisibility(View.GONE);
+            endLinearLayout.setVisibility(View.GONE);
+            mReQMUIPlay.setVisibility(View.GONE);
+            isRePlay = false;
         }
     }
 
@@ -405,13 +442,57 @@ public class StartActivity extends Activity implements View.OnClickListener {
         }
     }
 
-
+    @SuppressLint("ClickableViewAccessibility")
     private void setListeners() {
+        mReQMUIPlay.setOnClickListener(this);
         mPlayAndStop.setOnClickListener(this);
         mLogOutBt.setOnClickListener(this);
         mScreenshot.setOnClickListener(this);
         mRecord.setOnClickListener(this);
         mReplay.setOnClickListener(this);
+        mStartDatePickerTimeEditY.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    showDatePickDlg(mStartDatePickerTimeEditY);
+                    return true;
+                }
+                return false;
+            }
+        });
+        mStarTimePickerEditH.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    showTimePickDlg(mStarTimePickerEditH);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        mEndDatePickerTimeEditY.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    showDatePickDlg(mEndDatePickerTimeEditY);
+                    return true;
+                }
+                return false;
+            }
+        });
+        mEndTimePickerEditH.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    showTimePickDlg(mEndTimePickerEditH);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+
         ytZoomIn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -431,7 +512,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         left.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.PAN_LEFT);
+                setCommand(event, PTZCommand.PAN_LEFT, R.mipmap.left_red, R.mipmap.left, left);
                 return true;
             }
         });
@@ -448,7 +529,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         leftDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.UP_LEFT);
+                setCommand(event, PTZCommand.UP_LEFT, R.mipmap.left_down_red, R.mipmap.left_down, leftDown);
                 return true;
             }
         });
@@ -457,7 +538,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         right.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.PAN_RIGHT);
+                setCommand(event, PTZCommand.PAN_RIGHT, R.mipmap.right_red, R.mipmap.play, right);
                 return true;
             }
         });
@@ -466,7 +547,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         rightUp.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.UP_RIGHT);
+                setCommand(event, PTZCommand.UP_RIGHT, R.mipmap.right_up_red, R.mipmap.right_up, rightUp);
                 return true;
             }
         });
@@ -475,7 +556,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         rightDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.DOWN_RIGHT);
+                setCommand(event, PTZCommand.DOWN_RIGHT, R.mipmap.right_down_red, R.mipmap.right_down, rightDown);
                 return true;
             }
         });
@@ -484,7 +565,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         up.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.TILT_UP);
+                setCommand(event, PTZCommand.TILT_UP,R.mipmap.up_red, R.mipmap.up, up);
                 return true;
             }
         });
@@ -492,7 +573,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         down.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.TILT_DOWN);
+                setCommand(event, PTZCommand.TILT_DOWN,R.mipmap.down_red, R.mipmap.down, down);
                 return true;
             }
         });
@@ -500,10 +581,42 @@ public class StartActivity extends Activity implements View.OnClickListener {
         reset.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.PAN_AUTO);
+                setCommand(event, PTZCommand.PAN_AUTO,R.mipmap.reset_red, R.mipmap.reset, reset);
                 return true;
             }
         });
+    }
+
+
+    private void showDatePickDlg(final EditText editText) {
+        Calendar calendar = Calendar.getInstance();
+        int mYear = calendar.get(Calendar.YEAR);
+        int mMonth = calendar.get(Calendar.MONTH);
+        int mDay = calendar.get(Calendar.DAY_OF_MONTH);
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, DatePickerDialog.THEME_HOLO_DARK, new DatePickerDialog.OnDateSetListener() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                editText.setText(year + "/" + (monthOfYear + 1) + "/" + dayOfMonth);
+            }
+        }, mYear, mMonth, mDay);
+        datePickerDialog.setTitle("时间选择");
+        datePickerDialog.show();
+    }
+
+    private void showTimePickDlg(final EditText editText) {
+        Calendar calendar = Calendar.getInstance();
+        int hourOfDay = calendar.get(Calendar.HOUR);
+        int minute = calendar.get(Calendar.MINUTE);
+        TimePickerDialog pickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                // TODO Auto-generated method stub
+                editText.setText(hourOfDay + ":" + minute);
+            }
+        }, hourOfDay, minute, true);
+        pickerDialog.show();
     }
 
     private void setCommand(MotionEvent event, int command) {
@@ -539,7 +652,6 @@ public class StartActivity extends Activity implements View.OnClickListener {
      * '
      *
      * @param event
-     * @param handel
      * @param command     sdk执行的命令
      * @param downColor   按下去的图标
      * @param upColor     抬起的图标

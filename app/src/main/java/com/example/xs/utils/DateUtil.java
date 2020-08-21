@@ -18,11 +18,19 @@ public class DateUtil {
         return sdf.format(cal.getTime());
     }
 
-    //获取当前时间
+    //获取今天0点时分
     public static String getCalendarZeroH() {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);//控制时
         cal.set(Calendar.MINUTE, 0);//控制分
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        return sdf.format(cal.getTime());
+    }
+
+
+    //获取当前事件时分
+    public static String getCalendarNowZeroH() {
+        Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
         return sdf.format(cal.getTime());
     }

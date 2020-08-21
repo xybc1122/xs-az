@@ -2,5 +2,6 @@
 <resources>
     <item name="goback" type="id"/>
     <item name="play" type="id"/>
+    <item name="id_reset" type="id"/>
     <item name="id_surfaceView" type="id"/>
 </resources>
