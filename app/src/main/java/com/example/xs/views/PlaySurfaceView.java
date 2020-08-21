@@ -10,26 +10,52 @@ import com.example.xs.utils.HkSdkUtil;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
 
 public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private int m_iWidth = 0;
-    private int m_iHeight = 0;
+    //布局的宽
+    private int mIWidth = 0;
+    //布局的高
+    private int mIHeight = 0;
 
-    public SurfaceHolder m_hHolder;
+    public SurfaceHolder mhHolder;
+
 
     public boolean bCreate = false;
 
+    public int getmIWidth() {
+        return mIWidth;
+    }
+
+    public void setmIWidth(int mIWidth) {
+        this.mIWidth = mIWidth;
+    }
+
+    public int getmIHeight() {
+        return mIHeight;
+    }
+
+    public void setmIHeight(int mIHeight) {
+        this.mIHeight = mIHeight;
+    }
+
+    public SurfaceHolder getMhHolder() {
+        return mhHolder;
+    }
+
+    public void setMhHolder(SurfaceHolder mhHolder) {
+        this.mhHolder = mhHolder;
+    }
 
     public String TAG = "PlaySurfaceView";
 
     public PlaySurfaceView(Context context) {
         super(context);
-        m_hHolder = this.getHolder();
-        m_hHolder.addCallback(this);
+        mhHolder = this.getHolder();
+        mhHolder.addCallback(this);
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
         // TODO Auto-generated method stub
-        m_hHolder.setFormat(PixelFormat.TRANSLUCENT);
+        mhHolder.setFormat(PixelFormat.TRANSLUCENT);
         System.out.println("surfaceChanged");
     }
 
@@ -50,9 +76,9 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     public void setParam(int iWidth, int iHeight) {
-        m_iHeight = iHeight;
-        m_iWidth = iWidth;
-        m_hHolder.setFixedSize(m_iWidth, m_iHeight);//分辨率
+        mIHeight = iHeight;
+        mIWidth = iWidth;
+        mhHolder.setFixedSize(mIWidth, mIHeight);//分辨率
     }
 
     public int startPreview(int iLoginId, int iChan) {
@@ -70,7 +96,7 @@ public class PlaySurfaceView extends SurfaceView implements SurfaceHolder.Callba
         previewInfo.lChannel = iChan;//通道号
         previewInfo.dwStreamType = 0; //码流类型：0-主码流，1-子码流，
         previewInfo.bBlocked = 1; //0- 非阻塞取流，1- 阻塞取流
-        previewInfo.hHwnd = m_hHolder; //播放窗口的句柄
+        previewInfo.hHwnd = mhHolder; //播放窗口的句柄
         int iPreviewHandle = HkSdkUtil.playVideo(iLoginId, previewInfo, null);
         // 窗口句柄
         if (iPreviewHandle < 0) {

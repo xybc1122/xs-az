@@ -29,6 +29,8 @@ import com.example.xs.utils.HkSdkUtil;
 import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.ThreadUtil;
 import com.example.xs.views.PlaySurfaceView;
+import com.hikvision.netsdk.NET_DVR_TIME;
+import com.hikvision.netsdk.NET_DVR_VOD_PARA;
 import com.hikvision.netsdk.PTZCommand;
 import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
 import com.qmuiteam.qmui.widget.QMUITopBar;
@@ -45,6 +47,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private final String TAG = StartActivity.class.getName();
 
     private ImageButton mLogOutBt = null;
+
     private ImageButton mPlayAndStop = null;
     //播放按钮切换控制
     private boolean isOnPlay = false;
@@ -54,6 +57,8 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private boolean isRePlay = false;
     //是否支持云台操作
     private boolean isCommand = false;
+    //云台展示切换
+    private boolean isConsole = false;
     //播放句柄id
     private int playId = -1;
     //绝对路径
@@ -93,6 +98,10 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private ImageButton mReplay;
     //确认回放按钮播放
     private QMUIRoundButton mReQMUIPlay;
+    //控制台
+    private ImageButton mConsole;
+
+    private int rePlayByTime = -1;
 
     private ImageButton left = null;
 
@@ -134,6 +143,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
     }
 
     private void findViews() {
+        mConsole = findViewById(R.id.console);
         mReQMUIPlay = findViewById(R.id.re_qmui_play);
         mReQMUIPlay.setVisibility(View.GONE);
         mStartDatePickerTimeEditY = findViewById(R.id.start_dp_time_edit_y);
@@ -160,12 +170,9 @@ public class StartActivity extends Activity implements View.OnClickListener {
         rightDown = findViewById(R.id.right_down);
         up = findViewById(R.id.up);
         down = findViewById(R.id.down);
-
         mPlayAndStop = findViewById(R.id.play_and_stop);
         mLogOutBt = findViewById(R.id.login_out);
-
         ytZoomIn = findViewById(R.id.zoom_in);
-
         ytZoomOut = findViewById(R.id.zoom_out);
 
     }
@@ -173,8 +180,41 @@ public class StartActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.console:
+                if (!isConsole) {
+                    mRelativeLayout.setVisibility(View.VISIBLE);
+                    mConsole.setImageResource(R.mipmap.console_red);
+                    isConsole = true;
+                } else {
+                    mRelativeLayout.setVisibility(View.GONE);
+                    mConsole.setImageResource(R.mipmap.console);
+                    isConsole = false;
+                }
+                break;
             case R.id.re_qmui_play:
-                System.out.println("mReQMUIPlay");
+                if (rePlayByTime < 0) {
+                    startLinearLayout.setEnabled(false);
+                    endLinearLayout.setEnabled(false);
+                    mReQMUIPlay.setText("停止");
+                    String[] sY = mStartDatePickerTimeEditY.getText().toString().split("/");
+                    String[] sH = mStarTimePickerEditH.getText().toString().split(":");
+                    NET_DVR_TIME sTime = HkSdkUtil.setRePlayTime(sY[0], sY[1], sY[2], sH[0], sH[1]);
+                    String[] eY = mEndDatePickerTimeEditY.getText().toString().split("/");
+                    String[] eH = mEndTimePickerEditH.getText().toString().split(":");
+                    NET_DVR_TIME eTime = HkSdkUtil.setRePlayTime(eY[0], eY[1], eY[2], eH[0], eH[1]);
+                    NET_DVR_VOD_PARA para = HkSdkUtil.setRePlayParam(sTime, eTime, palyInfo.getPlayTartChan(),
+                            playSurfaceView.getHolder().getSurface());
+                    rePlayByTime = HkSdkUtil.getRePlayByTime(GlobalUtil.loginInfo.getLoginId(), para);
+                    if (rePlayByTime == -1) {
+                        System.out.println(MsgUtil.errMsg());
+                    }
+
+                } else {
+                    rePlayByTime = -1;
+                    startLinearLayout.setEnabled(true);
+                    endLinearLayout.setEnabled(true);
+                    mReQMUIPlay.setText("回放");
+                }
                 break;
             case R.id.replay:
                 if (isOnPlay) {
@@ -240,7 +280,6 @@ public class StartActivity extends Activity implements View.OnClickListener {
                     MsgUtil.showDialogFail(this, "请先关闭回放...");
                     return;
                 }
-                final Handler handler = new Handler();
                 QMUITipDialog tipDialog = MsgUtil.tipDialog(this, !isOnPlay ? "视频加载中..." : "视频关闭中...", QMUITipDialog.Builder.ICON_TYPE_LOADING);
                 tipDialog.show();
                 if (!isOnPlay) {
@@ -273,12 +312,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
             case R.id.qmui_topbar_item_left_back:
                 //如果播放中被返回 必须要关闭不然会一直重连
                 if (isOnPlay) {
-                    ThreadUtil.loadThread(this, "视频正在播放 正在关闭...", new Runnable() {
-                        @Override
-                        public void run() {
-                            playSurfaceView.stopPreview(playId);
-                        }
-                    });
+                    playSurfaceView.stopPreview(playId);
                 }
                 Intent intent = new Intent(StartActivity.this, MainActivity.class);
                 this.finish();
@@ -314,13 +348,16 @@ public class StartActivity extends Activity implements View.OnClickListener {
             ytZoomIn.setVisibility(View.INVISIBLE);
             ytZoomOut.setVisibility(View.INVISIBLE);
             mRecord.setVisibility(View.INVISIBLE);
+            mConsole.setVisibility(View.GONE);
             mRelativeLayout.setVisibility(View.GONE);
         } else {
+            mConsole.setVisibility(View.VISIBLE);
             mScreenshot.setVisibility(View.VISIBLE);
             ytZoomIn.setVisibility(View.VISIBLE);
             ytZoomOut.setVisibility(View.VISIBLE);
             mRecord.setVisibility(View.VISIBLE);
-            mRelativeLayout.setVisibility(View.VISIBLE);
+            mConsole.setImageResource(R.mipmap.console);
+            isConsole = false;
         }
 
     }
@@ -329,7 +366,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
      * 抓图
      */
     public void subImg(String filePath, String fileName) {
-        mScreenshot.setImageResource(R.mipmap.jt_down);
+        mScreenshot.setImageResource(R.mipmap.camera_red);
         if (!isPlay()) {
             return;
         }
@@ -366,7 +403,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
             @Override
             public void run() {
                 tipDialog.dismiss();
-                mScreenshot.setImageResource(R.mipmap.jt);
+                mScreenshot.setImageResource(R.mipmap.camera);
             }
         }, 2 * 1000);
     }
@@ -380,7 +417,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         DisplayMetrics metrics = new DisplayMetrics();
         RelativeLayout relativeLayout = findViewById(R.id.root_relative);
         this.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        playSurfaceView.setParam(metrics.widthPixels, metrics.heightPixels / 2);
+        playSurfaceView.setParam(metrics.widthPixels, metrics.heightPixels / 2 - 100);
         playSurfaceView.setBackgroundColor(getResources().getColor(R.color.btn_filled_blue_bg_disabled));
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
                 RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -450,6 +487,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         mScreenshot.setOnClickListener(this);
         mRecord.setOnClickListener(this);
         mReplay.setOnClickListener(this);
+        mConsole.setOnClickListener(this);
         mStartDatePickerTimeEditY.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -565,7 +603,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         up.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.TILT_UP,R.mipmap.up_red, R.mipmap.up, up);
+                setCommand(event, PTZCommand.TILT_UP, R.mipmap.up_red, R.mipmap.up, up);
                 return true;
             }
         });
@@ -573,7 +611,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         down.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.TILT_DOWN,R.mipmap.down_red, R.mipmap.down, down);
+                setCommand(event, PTZCommand.TILT_DOWN, R.mipmap.down_red, R.mipmap.down, down);
                 return true;
             }
         });
@@ -581,7 +619,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
         reset.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.PAN_AUTO,R.mipmap.reset_red, R.mipmap.reset, reset);
+                setCommand(event, PTZCommand.PAN_AUTO, R.mipmap.reset_red, R.mipmap.reset, reset);
                 return true;
             }
         });

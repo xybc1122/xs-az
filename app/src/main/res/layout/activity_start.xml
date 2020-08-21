@@ -17,9 +17,9 @@
         android:id="@+id/play_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/dp_10"
+        android:background="@color/qmui_config_color_black"
+        android:padding="@dimen/dp_10"
         android:orientation="horizontal">
-
         <ImageButton
             android:id="@+id/play_and_stop"
             android:layout_width="@dimen/dp_35"
@@ -31,7 +31,26 @@
             android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@mipmap/play" />
-
+        <ImageButton
+            android:id="@+id/login_out"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/log_out" />
+        <ImageButton
+            android:id="@+id/console"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/dp_6"
+            android:clickable="true"
+            android:gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/console" />
         <ImageButton
             android:id="@+id/replay"
             android:layout_width="@dimen/dp_35"
@@ -43,16 +62,6 @@
             android:scaleType="centerCrop"
             android:src="@mipmap/replay" />
 
-        <ImageButton
-            android:id="@+id/login_out"
-            android:layout_width="@dimen/dp_35"
-            android:layout_height="@dimen/dp_35"
-            android:layout_gravity="center"
-            android:layout_marginRight="@dimen/dp_6"
-            android:clickable="true"
-            android:gravity="center"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/log_out" />
 
         <ImageButton
             android:id="@+id/zoom_in"
@@ -78,14 +87,14 @@
 
         <ImageButton
             android:id="@+id/sub_img"
-            android:layout_width="@dimen/dp_30"
-            android:layout_height="@dimen/dp_30"
+            android:layout_width="@dimen/dp_35"
+            android:layout_height="@dimen/dp_35"
             android:layout_gravity="center"
             android:layout_marginRight="@dimen/dp_6"
             android:clickable="true"
             android:gravity="center"
             android:scaleType="centerCrop"
-            android:src="@mipmap/jt" />
+            android:src="@mipmap/camera" />
 
         <ImageButton
             android:id="@+id/record"
@@ -186,6 +195,7 @@
         android:id="@+id/control_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/qmui_config_color_75_white"
         android:layout_below="@+id/timer">
 
         <ImageButton

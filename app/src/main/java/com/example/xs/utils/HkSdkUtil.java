@@ -1,11 +1,14 @@
 package com.example.xs.utils;
 
 import android.util.Log;
+import android.view.Surface;
 
 import com.example.xs.jna.HCNetSDKJNAInstance;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_DEVICEINFO_V30;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
+import com.hikvision.netsdk.NET_DVR_TIME;
+import com.hikvision.netsdk.NET_DVR_VOD_PARA;
 import com.hikvision.netsdk.RealPlayCallBack;
 
 public class HkSdkUtil {
@@ -72,5 +75,34 @@ public class HkSdkUtil {
         return HCNetSDK.getInstance().NET_DVR_StopSaveRealData(playId);
     }
 
+    //设置录像回放时间 年月日 时分秒
+    public static NET_DVR_TIME setRePlayTime(String year, String month, String day, String hour, String minute) {
+        NET_DVR_TIME derTime = new NET_DVR_TIME();
+        derTime.dwYear = Integer.parseInt(year);
+        derTime.dwMonth = Integer.parseInt(month);
+        derTime.dwDay = Integer.parseInt(day);
+        derTime.dwHour = Integer.parseInt(hour);
+        derTime.dwMinute = Integer.parseInt(minute);
+        return derTime;
+    }
 
+    //设置录像回放 参数
+    public static NET_DVR_VOD_PARA setRePlayParam(NET_DVR_TIME timeStart,
+                                                  NET_DVR_TIME timeStop, int mIStartChan, Surface surface) {
+        NET_DVR_VOD_PARA para = new NET_DVR_VOD_PARA();
+        para.struBeginTime = timeStart;
+        para.struEndTime = timeStop;
+        //主码流
+        para.byStreamType = 0;
+        //通道
+        para.struIDInfo.dwChannel = mIStartChan;
+        //播放句柄
+        para.hWnd = surface;
+        return para;
+    }
+
+    //录像回放api
+    public static int getRePlayByTime(int loginId, NET_DVR_VOD_PARA para) {
+        return HCNetSDK.getInstance().NET_DVR_PlayBackByTime_V40(loginId, para);
+    }
 }
