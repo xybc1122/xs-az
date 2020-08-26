@@ -6,6 +6,7 @@ import android.view.Surface;
 import com.example.xs.jna.HCNetSDKJNAInstance;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_DEVICEINFO_V30;
+import com.hikvision.netsdk.NET_DVR_FILECOND;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
 import com.hikvision.netsdk.NET_DVR_TIME;
 import com.hikvision.netsdk.NET_DVR_VOD_PARA;
@@ -104,5 +105,10 @@ public class HkSdkUtil {
     //录像回放api
     public static int getRePlayByTime(int loginId, NET_DVR_VOD_PARA para) {
         return HCNetSDK.getInstance().NET_DVR_PlayBackByTime_V40(loginId, para);
+    }
+
+    //查找回放文件
+    public static int findFile(int loginId, NET_DVR_FILECOND lpSearchInfo) {
+        return HCNetSDK.getInstance().NET_DVR_FindFile_V30(loginId, lpSearchInfo);
     }
 }

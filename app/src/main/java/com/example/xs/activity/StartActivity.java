@@ -3,7 +3,6 @@ package com.example.xs.activity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,7 +17,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TimePicker;
 
 import com.example.xs.R;
 import com.example.xs.mvp.model.PlaySurfaceViewInfo;
@@ -29,20 +27,20 @@ import com.example.xs.utils.HkSdkUtil;
 import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.ThreadUtil;
 import com.example.xs.views.PlaySurfaceView;
-import com.hikvision.netsdk.NET_DVR_TIME;
-import com.hikvision.netsdk.NET_DVR_VOD_PARA;
+import com.example.xs.views.TimeScaleView;
 import com.hikvision.netsdk.PTZCommand;
 import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
 import com.qmuiteam.qmui.widget.QMUITopBar;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
-import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
-public class StartActivity extends Activity implements View.OnClickListener {
+public class StartActivity extends Activity implements View.OnClickListener, TimeScaleView.OnScrollListener {
 
     private final String TAG = StartActivity.class.getName();
 
@@ -59,6 +57,8 @@ public class StartActivity extends Activity implements View.OnClickListener {
     private boolean isCommand = false;
     //云台展示切换
     private boolean isConsole = false;
+    //回放播放切换
+    private boolean isRePlayVideo = false;
     //播放句柄id
     private int playId = -1;
     //绝对路径
@@ -76,32 +76,23 @@ public class StartActivity extends Activity implements View.OnClickListener {
     //视频播放控件
     private PlaySurfaceView playSurfaceView;
     //播放信息
-    private PlaySurfaceViewInfo palyInfo;
+    private PlaySurfaceViewInfo playInfo;
     //云台操控布局
     private RelativeLayout mRelativeLayout;
-    //开始选择回放时间
-    private LinearLayout startLinearLayout;
-    //结束 选择回放时间
-    private LinearLayout endLinearLayout;
-
     //年/月/日
     private EditText mStartDatePickerTimeEditY;
-    //时:分
-    private EditText mStarTimePickerEditH;
 
-    //年/月/日
-    private EditText mEndDatePickerTimeEditY;
-    //时:分
-    private EditText mEndTimePickerEditH;
+    private TimeScaleView mTvMain;
+
 
     //点击回放按钮显示
     private ImageButton mReplay;
-    //确认回放按钮播放
-    private QMUIRoundButton mReQMUIPlay;
+
     //控制台
     private ImageButton mConsole;
 
     private int rePlayByTime = -1;
+    private ImageButton rePlayAndStop = null;
 
     private ImageButton left = null;
 
@@ -139,27 +130,23 @@ public class StartActivity extends Activity implements View.OnClickListener {
         initTopBar();
         createView();
         Intent intent = getIntent();
-        palyInfo = (PlaySurfaceViewInfo) intent.getSerializableExtra("playInfo");
+        playInfo = (PlaySurfaceViewInfo) intent.getSerializableExtra("playInfo");
     }
 
     private void findViews() {
+        rePlayAndStop = findViewById(R.id.re_play_and_stop);
+        rePlayAndStop.setVisibility(View.GONE);
+        mTvMain = findViewById(R.id.tv_main);
+        mTvMain.setVisibility(View.GONE);
         mConsole = findViewById(R.id.console);
-        mReQMUIPlay = findViewById(R.id.re_qmui_play);
-        mReQMUIPlay.setVisibility(View.GONE);
         mStartDatePickerTimeEditY = findViewById(R.id.start_dp_time_edit_y);
-        mStarTimePickerEditH = findViewById(R.id.start_tp_time_edit_h);
-        mEndDatePickerTimeEditY = findViewById(R.id.end_dp_time_edit_y);
-        mEndTimePickerEditH = findViewById(R.id.end_tp_time_edit_h);
+        mStartDatePickerTimeEditY.setVisibility(View.GONE);
         mReplay = findViewById(R.id.replay);
         mRelativeLayout = findViewById(R.id.control_layout);
         mRecord = findViewById(R.id.record);
         mScreenshot = findViewById(R.id.sub_img);
         mTimer = findViewById(R.id.timer);
         mTimer.setVisibility(View.GONE);
-        startLinearLayout = findViewById(R.id.start_layout);
-        endLinearLayout = findViewById(R.id.end_layout);
-        startLinearLayout.setVisibility(View.GONE);
-        endLinearLayout.setVisibility(View.GONE);
         mTopBar = findViewById(R.id.topbar);
         reset = findViewById(R.id.reset);
         left = findViewById(R.id.left);
@@ -191,31 +178,6 @@ public class StartActivity extends Activity implements View.OnClickListener {
                     isConsole = false;
                 }
                 break;
-            case R.id.re_qmui_play:
-                if (rePlayByTime < 0) {
-                    startLinearLayout.setEnabled(false);
-                    endLinearLayout.setEnabled(false);
-                    mReQMUIPlay.setText("停止");
-                    String[] sY = mStartDatePickerTimeEditY.getText().toString().split("/");
-                    String[] sH = mStarTimePickerEditH.getText().toString().split(":");
-                    NET_DVR_TIME sTime = HkSdkUtil.setRePlayTime(sY[0], sY[1], sY[2], sH[0], sH[1]);
-                    String[] eY = mEndDatePickerTimeEditY.getText().toString().split("/");
-                    String[] eH = mEndTimePickerEditH.getText().toString().split(":");
-                    NET_DVR_TIME eTime = HkSdkUtil.setRePlayTime(eY[0], eY[1], eY[2], eH[0], eH[1]);
-                    NET_DVR_VOD_PARA para = HkSdkUtil.setRePlayParam(sTime, eTime, palyInfo.getPlayTartChan(),
-                            playSurfaceView.getHolder().getSurface());
-                    rePlayByTime = HkSdkUtil.getRePlayByTime(GlobalUtil.loginInfo.getLoginId(), para);
-                    if (rePlayByTime == -1) {
-                        System.out.println(MsgUtil.errMsg());
-                    }
-
-                } else {
-                    rePlayByTime = -1;
-                    startLinearLayout.setEnabled(true);
-                    endLinearLayout.setEnabled(true);
-                    mReQMUIPlay.setText("回放");
-                }
-                break;
             case R.id.replay:
                 if (isOnPlay) {
                     MsgUtil.showDialogFail(this, "请先停止实施预览...");
@@ -223,9 +185,26 @@ public class StartActivity extends Activity implements View.OnClickListener {
                 }
                 //在回放中
                 if (!isRePlay) {
+                    //初始化数据 查找文件时间片段
+                    //添加时间片段
+                    List<TimeScaleView.TimePart> time = new ArrayList<>();
+                    time.add(new TimeScaleView.TimePart(3, 15, 20, 4, 20, 30));
+                    time.add(new TimeScaleView.TimePart(12, 30, 20, 13, 20, 30));
+                    time.add(new TimeScaleView.TimePart(13, 30, 20, 14, 20, 30));
+                    time.add(new TimeScaleView.TimePart(16, 30, 20, 19, 20, 30));
+                    mTvMain.addTimePart(time);
                     rePlayChanged(false);
                 } else {
                     rePlayChanged(true);
+                }
+                break;
+            case R.id.re_play_and_stop:
+                if (!isRePlayVideo) {
+                    rePlayAndStop.setImageResource(R.mipmap.re_stop);
+                    isRePlayVideo = true;
+                } else {
+                    rePlayAndStop.setImageResource(R.mipmap.re_play);
+                    isRePlayVideo = false;
                 }
                 break;
             case R.id.record:
@@ -286,7 +265,7 @@ public class StartActivity extends Activity implements View.OnClickListener {
                     ThreadUtil.startThread(new Runnable() {
                         @Override
                         public void run() {
-                            playId = playSurfaceView.startPreview(GlobalUtil.loginInfo.getLoginId(), palyInfo.getPlayTartChan());
+                            playId = playSurfaceView.startPreview(GlobalUtil.loginInfo.getLoginId(), playInfo.getPlayTartChan());
                         }
                     });
                     mPlayAndStop.setImageResource(R.mipmap.stop);
@@ -323,20 +302,19 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     public void rePlayChanged(boolean isChang) {
         if (!isChang) {
+            rePlayAndStop.setVisibility(View.VISIBLE);
             mReplay.setImageResource(R.mipmap.replay_down);
             mStartDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
-            mStarTimePickerEditH.setText(DateUtil.getCalendarZeroH());
-            startLinearLayout.setVisibility(View.VISIBLE);
-            mEndDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
-            mEndTimePickerEditH.setText(DateUtil.getCalendarNowZeroH());
-            endLinearLayout.setVisibility(View.VISIBLE);
-            mReQMUIPlay.setVisibility(View.VISIBLE);
+            mStartDatePickerTimeEditY.setVisibility(View.VISIBLE);
+            mTvMain.setVisibility(View.VISIBLE);
+            mPlayAndStop.setVisibility(View.GONE);
             isRePlay = true;
         } else {
+            rePlayAndStop.setVisibility(View.GONE);
             mReplay.setImageResource(R.mipmap.replay);
-            startLinearLayout.setVisibility(View.GONE);
-            endLinearLayout.setVisibility(View.GONE);
-            mReQMUIPlay.setVisibility(View.GONE);
+            mStartDatePickerTimeEditY.setVisibility(View.GONE);
+            mTvMain.setVisibility(View.GONE);
+            mPlayAndStop.setVisibility(View.VISIBLE);
             isRePlay = false;
         }
     }
@@ -344,10 +322,10 @@ public class StartActivity extends Activity implements View.OnClickListener {
     //隐藏元素
     public void linearChanged(boolean isChang) {
         if (isChang) {
-            mScreenshot.setVisibility(View.INVISIBLE);
-            ytZoomIn.setVisibility(View.INVISIBLE);
-            ytZoomOut.setVisibility(View.INVISIBLE);
-            mRecord.setVisibility(View.INVISIBLE);
+            mScreenshot.setVisibility(View.GONE);
+            ytZoomIn.setVisibility(View.GONE);
+            ytZoomOut.setVisibility(View.GONE);
+            mRecord.setVisibility(View.GONE);
             mConsole.setVisibility(View.GONE);
             mRelativeLayout.setVisibility(View.GONE);
         } else {
@@ -425,7 +403,6 @@ public class StartActivity extends Activity implements View.OnClickListener {
         playSurfaceView.setId(R.id.id_surfaceView);
         //动态添加布局
         relativeLayout.addView(playSurfaceView, lp);
-
         //动态添加布局
         LinearLayout linearLayout = findViewById(R.id.play_layout);
         ((RelativeLayout.LayoutParams) linearLayout.getLayoutParams()).addRule(RelativeLayout.BELOW, R.id.id_surfaceView);
@@ -481,49 +458,18 @@ public class StartActivity extends Activity implements View.OnClickListener {
 
     @SuppressLint("ClickableViewAccessibility")
     private void setListeners() {
-        mReQMUIPlay.setOnClickListener(this);
         mPlayAndStop.setOnClickListener(this);
         mLogOutBt.setOnClickListener(this);
         mScreenshot.setOnClickListener(this);
         mRecord.setOnClickListener(this);
         mReplay.setOnClickListener(this);
         mConsole.setOnClickListener(this);
+        rePlayAndStop.setOnClickListener(this);
         mStartDatePickerTimeEditY.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     showDatePickDlg(mStartDatePickerTimeEditY);
-                    return true;
-                }
-                return false;
-            }
-        });
-        mStarTimePickerEditH.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    showTimePickDlg(mStarTimePickerEditH);
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        mEndDatePickerTimeEditY.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    showDatePickDlg(mEndDatePickerTimeEditY);
-                    return true;
-                }
-                return false;
-            }
-        });
-        mEndTimePickerEditH.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    showTimePickDlg(mEndTimePickerEditH);
                     return true;
                 }
                 return false;
@@ -642,20 +588,6 @@ public class StartActivity extends Activity implements View.OnClickListener {
         datePickerDialog.show();
     }
 
-    private void showTimePickDlg(final EditText editText) {
-        Calendar calendar = Calendar.getInstance();
-        int hourOfDay = calendar.get(Calendar.HOUR);
-        int minute = calendar.get(Calendar.MINUTE);
-        TimePickerDialog pickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                // TODO Auto-generated method stub
-                editText.setText(hourOfDay + ":" + minute);
-            }
-        }, hourOfDay, minute, true);
-        pickerDialog.show();
-    }
 
     private void setCommand(MotionEvent event, int command) {
         switch (event.getAction()) {
@@ -749,4 +681,13 @@ public class StartActivity extends Activity implements View.OnClickListener {
         Log.i(TAG, "onDestroy");
     }
 
+    @Override
+    public void onScroll(int hour, int min, int sec) {
+        Log.d("--onScroll--", "hour " + hour + " min " + min + " sec " + sec);
+    }
+
+    @Override
+    public void onScrollFinish(int hour, int min, int sec) {
+        Log.d("--onScrollFinish--", "hour " + hour + " min " + min + " sec " + sec);
+    }
 }
