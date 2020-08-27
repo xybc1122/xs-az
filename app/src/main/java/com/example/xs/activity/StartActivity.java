@@ -28,6 +28,7 @@ import com.example.xs.utils.MsgUtil;
 import com.example.xs.utils.ThreadUtil;
 import com.example.xs.views.PlaySurfaceView;
 import com.example.xs.views.TimeScaleView;
+import com.hikvision.netsdk.NET_DVR_FILECOND;
 import com.hikvision.netsdk.PTZCommand;
 import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
 import com.qmuiteam.qmui.widget.QMUITopBar;
@@ -36,9 +37,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 public class StartActivity extends Activity implements View.OnClickListener, TimeScaleView.OnScrollListener {
 
@@ -185,14 +184,10 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                 }
                 //在回放中
                 if (!isRePlay) {
-                    //初始化数据 查找文件时间片段
-                    //添加时间片段
-                    List<TimeScaleView.TimePart> time = new ArrayList<>();
-                    time.add(new TimeScaleView.TimePart(3, 15, 20, 4, 20, 30));
-                    time.add(new TimeScaleView.TimePart(12, 30, 20, 13, 20, 30));
-                    time.add(new TimeScaleView.TimePart(13, 30, 20, 14, 20, 30));
-                    time.add(new TimeScaleView.TimePart(16, 30, 20, 19, 20, 30));
-                    mTvMain.addTimePart(time);
+                    mStartDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
+                    if (!selectRePlayTime()) {
+                        return;
+                    }
                     rePlayChanged(false);
                 } else {
                     rePlayChanged(true);
@@ -298,6 +293,26 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                 startActivity(intent);
                 break;
         }
+    }
+
+    public boolean selectRePlayTime() {
+        mTvMain.clearData();
+        String[] timeStr = mStartDatePickerTimeEditY.getText().toString().split("/");
+        NET_DVR_FILECOND lpSearchInfo = HkSdkUtil.setNetDvrFileCond(timeStr, playInfo.getPlayTartChan());
+        if (null == lpSearchInfo) {
+            MsgUtil.showDialogFail(this, "系统错误");
+            return false;
+        }
+        int iFindHandle = HkSdkUtil.findFile(GlobalUtil.loginInfo.getLoginId(), lpSearchInfo);
+        if (iFindHandle == -1) {
+            MsgUtil.showDialogFail(this, "获取文件失败" + MsgUtil.errMsg());
+            Log.i("findFile--->", MsgUtil.errMsg());
+            return false;
+        }
+        //初始化数据 查找文件时间片段
+        //添加时间片段
+        mTvMain.addTimePart(HkSdkUtil.getTimePart(iFindHandle));
+        return true;
     }
 
     public void rePlayChanged(boolean isChang) {

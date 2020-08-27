@@ -4,13 +4,18 @@ import android.util.Log;
 import android.view.Surface;
 
 import com.example.xs.jna.HCNetSDKJNAInstance;
+import com.example.xs.views.TimeScaleView;
 import com.hikvision.netsdk.HCNetSDK;
 import com.hikvision.netsdk.NET_DVR_DEVICEINFO_V30;
 import com.hikvision.netsdk.NET_DVR_FILECOND;
+import com.hikvision.netsdk.NET_DVR_FINDDATA_V30;
 import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
 import com.hikvision.netsdk.NET_DVR_TIME;
 import com.hikvision.netsdk.NET_DVR_VOD_PARA;
 import com.hikvision.netsdk.RealPlayCallBack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HkSdkUtil {
     private final static String TAG = HkSdkUtil.class.getName();
@@ -107,8 +112,72 @@ public class HkSdkUtil {
         return HCNetSDK.getInstance().NET_DVR_PlayBackByTime_V40(loginId, para);
     }
 
-    //查找回放文件
+    //查找回放文件 获得文件Handle
     public static int findFile(int loginId, NET_DVR_FILECOND lpSearchInfo) {
         return HCNetSDK.getInstance().NET_DVR_FindFile_V30(loginId, lpSearchInfo);
     }
+
+    //设置  NET_DVR_FILECOND对象
+    public static NET_DVR_FILECOND setNetDvrFileCond(String[] timeStr, int lChannel) {
+        if (timeStr.length <= 0) {
+            return null;
+        }
+        int y = Integer.parseInt(timeStr[0]);
+        int m = Integer.parseInt(timeStr[1]);
+        int d = Integer.parseInt(timeStr[2]);
+        NET_DVR_FILECOND lpSearchInfo = new NET_DVR_FILECOND();
+        lpSearchInfo.lChannel = lChannel;
+        lpSearchInfo.dwFileType = 0xff;
+        lpSearchInfo.dwIsLocked = 0xff;
+        lpSearchInfo.dwUseCardNo = 0;
+        lpSearchInfo.struStartTime.dwYear = y;
+        lpSearchInfo.struStartTime.dwMonth = m;
+        lpSearchInfo.struStartTime.dwDay = d;
+        lpSearchInfo.struStartTime.dwHour = 0;
+        lpSearchInfo.struStartTime.dwMinute = 0;
+        lpSearchInfo.struStartTime.dwSecond = 0;
+        lpSearchInfo.struStopTime.dwYear = y;
+        lpSearchInfo.struStopTime.dwMonth = m;
+        lpSearchInfo.struStopTime.dwDay = d;
+        lpSearchInfo.struStopTime.dwHour = 23;
+        lpSearchInfo.struStopTime.dwMinute = 59;
+        lpSearchInfo.struStopTime.dwSecond = 59;
+        return lpSearchInfo;
+    }
+
+
+    //获得播放时间片段
+    public static List<TimeScaleView.TimePart> getTimePart(int iFindHandle) {
+        List<TimeScaleView.TimePart> time = new ArrayList<>();
+        int findNext = 0;
+        NET_DVR_FINDDATA_V30 struFindData = new NET_DVR_FINDDATA_V30();
+        while (findNext != -1) {
+            findNext = HCNetSDK.getInstance().NET_DVR_FindNextFile_V30(iFindHandle, struFindData);
+            if (findNext == HCNetSDK.NET_DVR_FILE_SUCCESS) {
+//                System.out.println("~~~~~Find File===>" + CommonMethod.toValidString(new String(struFindData.sFileName)));
+//                System.out.println("~~~~~File Size===>" + struFindData.dwFileSize);
+                System.out.println("~~~~~File Time,from===>" + struFindData.struStartTime.ToString());
+                System.out.println("~~~~~File Time,to===>" + struFindData.struStopTime.ToString());
+                List<Integer> startTime = StrUtil.strSpl(struFindData.struStartTime.ToString());
+                List<Integer> endTime = StrUtil.strSpl(struFindData.struStopTime.ToString());
+                time.add(new TimeScaleView.TimePart(startTime.get(0), startTime.get(1), startTime.get(2),
+                        endTime.get(0), endTime.get(1), endTime.get(2)));
+            } else if (HCNetSDK.NET_DVR_FILE_NOFIND == findNext) {
+                System.out.println("No file found");
+                break;
+            } else if (HCNetSDK.NET_DVR_NOMOREFILE == findNext) {
+                System.out.println("All files are listed");
+                break;
+            } else if (HCNetSDK.NET_DVR_FILE_EXCEPTION == findNext) {
+                System.out.println("Exception in searching");
+                break;
+            } else if (HCNetSDK.NET_DVR_ISFINDING == findNext) {
+                System.out.println("NET_DVR_ISFINDING");
+            }
+        }
+        HCNetSDK.getInstance().NET_DVR_FindClose_V30(iFindHandle);
+        return time;
+    }
+
+
 }
