@@ -3,6 +3,7 @@ package com.example.xs.activity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +18,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.example.xs.R;
 import com.example.xs.mvp.model.PlaySurfaceViewInfo;
@@ -38,6 +40,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.io.File;
 import java.util.Calendar;
+import java.util.List;
 
 public class StartActivity extends Activity implements View.OnClickListener, TimeScaleView.OnScrollListener {
 
@@ -58,6 +61,9 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     private boolean isConsole = false;
     //回放播放切换
     private boolean isRePlayVideo = false;
+    //用来展示当天是否有播放信息
+    private boolean isTvMan = false;
+
     //播放句柄id
     private int playId = -1;
     //绝对路径
@@ -83,6 +89,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
 
     private TimeScaleView mTvMain;
 
+    private TextView mVideoNumText;
+    private TextView mNotVideoText;
 
     //点击回放按钮显示
     private ImageButton mReplay;
@@ -133,6 +141,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     }
 
     private void findViews() {
+        mVideoNumText = findViewById(R.id.video_num_text);
+        mNotVideoText = findViewById(R.id.not_video_text);
         rePlayAndStop = findViewById(R.id.re_play_and_stop);
         rePlayAndStop.setVisibility(View.GONE);
         mTvMain = findViewById(R.id.tv_main);
@@ -184,10 +194,13 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                 }
                 //在回放中
                 if (!isRePlay) {
+                    //这是当前时间
                     mStartDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
-                    if (!selectRePlayTime()) {
+                    int rest = selectRePlayTime(this);
+                    if (rest == -1) {
                         return;
                     }
+                    mTvMain.setCurrentHostTime(Integer.parseInt(DateUtil.getCalendarNowZeroH()));
                     rePlayChanged(false);
                 } else {
                     rePlayChanged(true);
@@ -195,6 +208,9 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                 break;
             case R.id.re_play_and_stop:
                 if (!isRePlayVideo) {
+//                    HkSdkUtil.setNetDvrFileCond();
+
+
                     rePlayAndStop.setImageResource(R.mipmap.re_stop);
                     isRePlayVideo = true;
                 } else {
@@ -295,24 +311,39 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         }
     }
 
-    public boolean selectRePlayTime() {
+    @Override
+    public void onScroll(int hour, int min, int sec) {
+        Log.d("--onScroll--", "hour " + hour + " min " + min + " sec " + sec);
+    }
+
+    @Override
+    public void onScrollFinish(int hour, int min, int sec) {
+        Log.d("--onScrollFinish--", "hour " + hour + " min " + min + " sec " + sec);
+    }
+
+    public int selectRePlayTime(Context context) {
         mTvMain.clearData();
         String[] timeStr = mStartDatePickerTimeEditY.getText().toString().split("/");
-        NET_DVR_FILECOND lpSearchInfo = HkSdkUtil.setNetDvrFileCond(timeStr, playInfo.getPlayTartChan());
+        NET_DVR_FILECOND lpSearchInfo = HkSdkUtil.setNetDvrFileCond(timeStr, playInfo.getPlayTartChan(), null, null);
         if (null == lpSearchInfo) {
             MsgUtil.showDialogFail(this, "系统错误");
-            return false;
+            return -1;
         }
         int iFindHandle = HkSdkUtil.findFile(GlobalUtil.loginInfo.getLoginId(), lpSearchInfo);
         if (iFindHandle == -1) {
             MsgUtil.showDialogFail(this, "获取文件失败" + MsgUtil.errMsg());
             Log.i("findFile--->", MsgUtil.errMsg());
-            return false;
+            return -1;
         }
         //初始化数据 查找文件时间片段
         //添加时间片段
-        mTvMain.addTimePart(HkSdkUtil.getTimePart(iFindHandle));
-        return true;
+        List<TimeScaleView.TimePart> timePart = HkSdkUtil.getTimePart(iFindHandle, context);
+        if (timePart.isEmpty()) {
+            return -2;
+        }
+        mTvMain.addTimePart(timePart);
+        mVideoNumText.setText("共" + timePart.size() + "个录像");
+        return 0;
     }
 
     public void rePlayChanged(boolean isChang) {
@@ -323,6 +354,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
             mStartDatePickerTimeEditY.setVisibility(View.VISIBLE);
             mTvMain.setVisibility(View.VISIBLE);
             mPlayAndStop.setVisibility(View.GONE);
+            mVideoNumText.setVisibility(View.VISIBLE);
             isRePlay = true;
         } else {
             rePlayAndStop.setVisibility(View.GONE);
@@ -330,6 +362,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
             mStartDatePickerTimeEditY.setVisibility(View.GONE);
             mTvMain.setVisibility(View.GONE);
             mPlayAndStop.setVisibility(View.VISIBLE);
+            mVideoNumText.setVisibility(View.INVISIBLE);
             isRePlay = false;
         }
     }
@@ -597,6 +630,20 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                 editText.setText(year + "/" + (monthOfYear + 1) + "/" + dayOfMonth);
+                int rest = selectRePlayTime(StartActivity.this);
+                if (rest == -2) {
+                    mVideoNumText.setVisibility(View.INVISIBLE);
+                    mNotVideoText.setVisibility(View.VISIBLE);
+                    mTvMain.setVisibility(View.INVISIBLE);
+                    isTvMan = true;
+                } else {
+                    if (isTvMan) {
+                        mVideoNumText.setVisibility(View.VISIBLE);
+                        mNotVideoText.setVisibility(View.INVISIBLE);
+                        mTvMain.setVisibility(View.VISIBLE);
+                        isTvMan = false;
+                    }
+                }
             }
         }, mYear, mMonth, mDay);
         datePickerDialog.setTitle("时间选择");
@@ -696,13 +743,4 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         Log.i(TAG, "onDestroy");
     }
 
-    @Override
-    public void onScroll(int hour, int min, int sec) {
-        Log.d("--onScroll--", "hour " + hour + " min " + min + " sec " + sec);
-    }
-
-    @Override
-    public void onScrollFinish(int hour, int min, int sec) {
-        Log.d("--onScrollFinish--", "hour " + hour + " min " + min + " sec " + sec);
-    }
 }

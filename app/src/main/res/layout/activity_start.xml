@@ -123,6 +123,16 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/video_num_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/play_layout"
+        android:layout_marginLeft="@dimen/dp_5"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:textColor="@color/qmui_config_color_white" />
+
     <Chronometer
         android:id="@+id/timer"
         android:layout_width="match_parent"
@@ -146,6 +156,16 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_90"
         android:layout_below="@+id/start_dp_time_edit_y" />
+
+    <TextView
+        android:id="@+id/not_video_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/start_dp_time_edit_y"
+        android:layout_centerInParent="true"
+        android:text="当天无视频"
+        android:textColor="@color/qmui_config_color_white"
+        android:visibility="gone" />
 
     <RelativeLayout
         android:id="@+id/control_layout"

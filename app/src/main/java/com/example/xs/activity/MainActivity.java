@@ -27,15 +27,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //                .setFontSize(14)
 //                .setTabPadding(5, 0, 5)
 //                .setChangeColor(Color.parseColor("#FF00F0"),Color.parseColor("#CCCCCC"))
-                .addTabItem("预览",  R.mipmap.video_red,R.mipmap.video, VideoListFragment.class)
-                .addTabItem("测试", R.mipmap.sorcket_red,R.mipmap.socket, TwoFragment.class)
+                .addTabItem("实时预览", R.mipmap.video_red, R.mipmap.video, VideoListFragment.class)
+                .addTabItem("软件操作", R.mipmap.sorcket_red, R.mipmap.socket, TwoFragment.class)
 //                .isShowDivider(true)
 //                .setDividerColor(Color.parseColor("#FF0000"))
 //                .setTabBarBackgroundColor(Color.parseColor("#00FF0000"))
                 .setOnTabChangeListener(new BottomTabBar.OnTabChangeListener() {
                     @Override
                     public void onTabChange(int position, String name, View view) {
+                        System.out.println(position);
 
+                        System.out.println(name);
+
+                        System.out.println(view);
                     }
                 });
     }

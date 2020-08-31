@@ -29,9 +29,17 @@ public class DateUtil {
 
 
     //获取当前事件时分
-    public static String getCalendarNowZeroH() {
+    public static String getCalendarNowZeroHM() {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        return sdf.format(cal.getTime());
+    }
+
+
+    //获取当前事件时
+    public static String getCalendarNowZeroH() {
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH", Locale.getDefault());
         return sdf.format(cal.getTime());
     }
 }

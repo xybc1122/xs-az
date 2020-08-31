@@ -1,5 +1,6 @@
 package com.example.xs.utils;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.Surface;
 
@@ -13,6 +14,7 @@ import com.hikvision.netsdk.NET_DVR_PREVIEWINFO;
 import com.hikvision.netsdk.NET_DVR_TIME;
 import com.hikvision.netsdk.NET_DVR_VOD_PARA;
 import com.hikvision.netsdk.RealPlayCallBack;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,8 +119,8 @@ public class HkSdkUtil {
         return HCNetSDK.getInstance().NET_DVR_FindFile_V30(loginId, lpSearchInfo);
     }
 
-    //设置  NET_DVR_FILECOND对象
-    public static NET_DVR_FILECOND setNetDvrFileCond(String[] timeStr, int lChannel) {
+    //设置  NET_DVR_FILECOND对象  String[] timeStr 年月日时间
+    public static NET_DVR_FILECOND setNetDvrFileCond(String[] timeStr, int lChannel, String[] sDay, String[] eDay) {
         if (timeStr.length <= 0) {
             return null;
         }
@@ -133,24 +135,39 @@ public class HkSdkUtil {
         lpSearchInfo.struStartTime.dwYear = y;
         lpSearchInfo.struStartTime.dwMonth = m;
         lpSearchInfo.struStartTime.dwDay = d;
-        lpSearchInfo.struStartTime.dwHour = 0;
-        lpSearchInfo.struStartTime.dwMinute = 0;
-        lpSearchInfo.struStartTime.dwSecond = 0;
+        if (sDay == null || sDay.length <= 0) {
+            lpSearchInfo.struStartTime.dwHour = 0;
+            lpSearchInfo.struStartTime.dwMinute = 0;
+            lpSearchInfo.struStartTime.dwSecond = 0;
+        } else {
+            lpSearchInfo.struStartTime.dwHour = Integer.parseInt(sDay[0]);
+            lpSearchInfo.struStartTime.dwMinute = Integer.parseInt(sDay[1]);
+            lpSearchInfo.struStartTime.dwSecond = Integer.parseInt(sDay[2]);
+        }
         lpSearchInfo.struStopTime.dwYear = y;
         lpSearchInfo.struStopTime.dwMonth = m;
         lpSearchInfo.struStopTime.dwDay = d;
-        lpSearchInfo.struStopTime.dwHour = 23;
-        lpSearchInfo.struStopTime.dwMinute = 59;
-        lpSearchInfo.struStopTime.dwSecond = 59;
+        if (eDay == null || eDay.length <= 0) {
+            lpSearchInfo.struStopTime.dwHour = 23;
+            lpSearchInfo.struStopTime.dwMinute = 59;
+            lpSearchInfo.struStopTime.dwSecond = 59;
+        } else {
+            lpSearchInfo.struStopTime.dwHour = Integer.parseInt(eDay[0]);
+            lpSearchInfo.struStopTime.dwMinute = Integer.parseInt(eDay[1]);
+            lpSearchInfo.struStopTime.dwSecond = Integer.parseInt(eDay[2]);
+        }
         return lpSearchInfo;
     }
 
 
     //获得播放时间片段
-    public static List<TimeScaleView.TimePart> getTimePart(int iFindHandle) {
+    public static List<TimeScaleView.TimePart> getTimePart(int iFindHandle, Context context) {
+        QMUITipDialog tipDialog = MsgUtil.tipDialog(context, "视频查询中...", QMUITipDialog.Builder.ICON_TYPE_LOADING);
+        tipDialog.show();
         List<TimeScaleView.TimePart> time = new ArrayList<>();
         int findNext = 0;
         NET_DVR_FINDDATA_V30 struFindData = new NET_DVR_FINDDATA_V30();
+        String msg;
         while (findNext != -1) {
             findNext = HCNetSDK.getInstance().NET_DVR_FindNextFile_V30(iFindHandle, struFindData);
             if (findNext == HCNetSDK.NET_DVR_FILE_SUCCESS) {
@@ -164,19 +181,31 @@ public class HkSdkUtil {
                         endTime.get(0), endTime.get(1), endTime.get(2)));
             } else if (HCNetSDK.NET_DVR_FILE_NOFIND == findNext) {
                 System.out.println("No file found");
+                msg = "没有回放视频...";
                 break;
             } else if (HCNetSDK.NET_DVR_NOMOREFILE == findNext) {
                 System.out.println("All files are listed");
+                msg = "All files are listed";
                 break;
             } else if (HCNetSDK.NET_DVR_FILE_EXCEPTION == findNext) {
                 System.out.println("Exception in searching");
+                msg = "Exception in searching";
                 break;
             } else if (HCNetSDK.NET_DVR_ISFINDING == findNext) {
                 System.out.println("NET_DVR_ISFINDING");
             }
         }
         HCNetSDK.getInstance().NET_DVR_FindClose_V30(iFindHandle);
+        MsgUtil.stopHandlerMsg(tipDialog, 1500);
         return time;
+    }
+
+    //是否有播发文件
+    public static void isPlayFile(int iFindHandle) {
+        NET_DVR_FINDDATA_V30 struFindData = new NET_DVR_FINDDATA_V30();
+        HCNetSDK.getInstance().NET_DVR_FindNextFile_V30(iFindHandle, struFindData);
+
+
     }
 
 

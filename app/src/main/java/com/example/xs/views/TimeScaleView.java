@@ -84,6 +84,14 @@ public class TimeScaleView extends View {
         super(context, attrs, defStyleAttr);
     }
 
+    //设置当前小时的时间
+    public void setCurrentHostTime(int host) {
+        int i = timeScale * (host - 3);
+        scroller.startScroll(i, 0, 0, 0);
+        postInvalidate();
+    }
+
+
     /**
      * 画背景
      *
@@ -103,10 +111,10 @@ public class TimeScaleView extends View {
         //画刻度值
         for (int i = 0; i <= totalTime; i++) {
             if (i % timeScale == 0) {
-                    canvas.drawLine(i, (float) viewHeight, i,
-                            (float) (viewHeight * 0.8), linePaint);
-                    canvas.drawText(
-                            formatString(i / timeScale, 0, 0), i, (float) (viewHeight * 0.5), linePaint);
+                canvas.drawLine(i, (float) viewHeight, i,
+                        (float) (viewHeight * 0.8), linePaint);
+                canvas.drawText(
+                        formatString(i / timeScale, 0, 0), i, (float) (viewHeight * 0.5), linePaint);
 
             }
         }
@@ -124,7 +132,7 @@ public class TimeScaleView extends View {
             //如果是先除以3600小数点的数据会被舍去 位置就不准确了
             int x1 = seconds1 * timeScale / 3600;
             int x2 = seconds2 * timeScale / 3600;
-            rect.set(x1, 0, x2,viewHeight);
+            rect.set(x1, 0, x2, viewHeight);
             canvas.drawRect(rect, timePaint);
         }
     }
@@ -167,7 +175,12 @@ public class TimeScaleView extends View {
      * @return 字符串数字
      */
     public String formatString(int hour, int min, int sec) {
+//        System.out.println("hour--->" + hour);
         StringBuilder builder = new StringBuilder();
+        if (hour == 24) {
+            builder.append(hour - 1).append(":").append(59).append(":").append(59);
+            return builder.toString();
+        }
         if (hour < 10) {
             builder.append("0").append(hour).append(":");
         } else {
@@ -235,7 +248,11 @@ public class TimeScaleView extends View {
                     int thour = sec / 3600;
                     int tmin = (sec - thour * 3600) / 60;
                     int tsec = sec - thour * 3600 - tmin * 60;
-                    scrollListener.onScrollFinish(thour, tmin, tsec);
+                    if (thour == 24) {
+                        scrollListener.onScrollFinish(thour - 1, 59, 59);
+                    } else {
+                        scrollListener.onScrollFinish(thour, tmin, tsec);
+                    }
                 }
                 postInvalidate();
                 break;
