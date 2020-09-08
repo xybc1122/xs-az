@@ -42,4 +42,5 @@ public class DateUtil {
         SimpleDateFormat sdf = new SimpleDateFormat("HH", Locale.getDefault());
         return sdf.format(cal.getTime());
     }
+
 }

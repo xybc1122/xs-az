@@ -11,13 +11,16 @@ import android.view.View;
 import android.widget.Scroller;
 
 import com.example.xs.R;
+import com.example.xs.utils.StrUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 时间尺控件
- * Created by king on 2016/9/18.
+ * Created by king on 2020/9/8
  */
 
 public class TimeScaleView extends View {
@@ -25,9 +28,10 @@ public class TimeScaleView extends View {
     private int viewHeight;
     private Paint linePaint = new Paint();
     private Paint midPaint = new Paint();
-    private Paint textPaint = new Paint();
     private Paint timePaint = new Paint();
     private Paint bgPaint = new Paint();
+    private Set<RangeXY> setIndex;
+    private boolean isDrawTimeRect = false;
     //时间间隔用小时计算
     private int timeScale = 1;
     //时间的长度
@@ -43,6 +47,10 @@ public class TimeScaleView extends View {
     private String timePartColor = "#02A7DD";
     //背景颜色，可以修改
     private String bgColor = "#303133";
+
+    //展示新时间
+    private boolean isTime = false;
+
 
     //滚动监听
     private OnScrollListener scrollListener;
@@ -65,32 +73,36 @@ public class TimeScaleView extends View {
         midPaint.setStrokeWidth(3);
         midPaint.setColor(getResources().getColor(R.color.qmui_config_color_white));
 
-        textPaint.setAntiAlias(true);
-        textPaint.setColor(Color.BLUE);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setTextSize(26);
-
         bgPaint.setAntiAlias(true);
         bgPaint.setColor(Color.parseColor(bgColor));
 
         //数据设置
         data = new ArrayList<>();
         rect = new Rect();
-
+        setIndex = new HashSet<>();
         scroller = new Scroller(context);
+
     }
 
     public TimeScaleView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
-    //设置当前小时的时间
     public void setCurrentHostTime(int host) {
+        //计算时
         int i = timeScale * (host - 3);
         scroller.startScroll(i, 0, 0, 0);
-        postInvalidate();
     }
 
+    public void startCurrentHostTime(int x) {
+        int finalx = scroller.getFinalX();
+        System.out.println(finalx);
+        if (finalx > timeScale * 21) {
+            return;
+        }
+        scroller.startScroll(scroller.getFinalX(), scroller.getFinalY(), x, 0);
+        postInvalidate();
+    }
 
     /**
      * 画背景
@@ -111,10 +123,12 @@ public class TimeScaleView extends View {
         //画刻度值
         for (int i = 0; i <= totalTime; i++) {
             if (i % timeScale == 0) {
+                //每一行的距离是90 余数
                 canvas.drawLine(i, (float) viewHeight, i,
                         (float) (viewHeight * 0.8), linePaint);
+                String strTime = StrUtil.formatString(i / timeScale, 0, 0);
                 canvas.drawText(
-                        formatString(i / timeScale, 0, 0), i, (float) (viewHeight * 0.5), linePaint);
+                        strTime, i, (float) (viewHeight * 0.5), linePaint);
 
             }
         }
@@ -132,6 +146,9 @@ public class TimeScaleView extends View {
             //如果是先除以3600小数点的数据会被舍去 位置就不准确了
             int x1 = seconds1 * timeScale / 3600;
             int x2 = seconds2 * timeScale / 3600;
+            if (!isDrawTimeRect) {
+                setIndex.add(new RangeXY(x1, x2));
+            }
             rect.set(x1, 0, x2, viewHeight);
             canvas.drawRect(rect, timePaint);
         }
@@ -157,46 +174,11 @@ public class TimeScaleView extends View {
         //滚动时的监听
         if (scrollListener != null) {
             scrollListener.onScroll(thour, tmin, tsec);
+            isPlayIndex(finalX);
         }
         //画指针
         canvas.drawLine(timeScale * 3 + finalX, 0,
                 timeScale * 3 + finalX, viewHeight, midPaint);
-        //画数字
-        canvas.drawText(formatString(thour, tmin, tsec), timeScale * 3 + finalX,
-                (float) (viewHeight * 0.3), textPaint);
-    }
-
-    /**
-     * 对时间进行格式化
-     *
-     * @param hour 小时
-     * @param min  分钟
-     * @param sec  秒
-     * @return 字符串数字
-     */
-    public String formatString(int hour, int min, int sec) {
-//        System.out.println("hour--->" + hour);
-        StringBuilder builder = new StringBuilder();
-        if (hour == 24) {
-            builder.append(hour - 1).append(":").append(59).append(":").append(59);
-            return builder.toString();
-        }
-        if (hour < 10) {
-            builder.append("0").append(hour).append(":");
-        } else {
-            builder.append(hour).append(":");
-        }
-        if (min < 10 && min >= 0) {
-            builder.append("0").append(min).append(":");
-        } else {
-            builder.append(min).append(":");
-        }
-        if (sec < 10 && sec >= 0) {
-            builder.append("0").append(sec);
-        } else {
-            builder.append(sec);
-        }
-        return builder.toString();
     }
 
     @Override
@@ -213,18 +195,18 @@ public class TimeScaleView extends View {
                 float dataX = lastX - x;
                 int finalx = scroller.getFinalX();
                 //右边
-                if (dataX < 0) {
-                    if (finalx < -viewWidth / 2) {
-                        return super.onTouchEvent(event);
-                    }
-                }
+
                 if (dataX > 0) {
+                    if (dataX < 0) {
+                        if (finalx < -viewWidth / 2) {
+                            return super.onTouchEvent(event);
+                        }
+                    }
                     //这里阻止滑动
                     if (finalx > timeScale * 21) {
                         return super.onTouchEvent(event);
                     }
                 }
-//                Log.d("--startScroll--","getFinalX "+scroller.getFinalX()+"getFinalY "+scroller.getFinalY());
                 scroller.startScroll(scroller.getFinalX(), scroller.getFinalY(), (int) dataX, 0);
                 lastX = x;
                 postInvalidate();
@@ -239,7 +221,8 @@ public class TimeScaleView extends View {
                 }
                 if (scrollListener != null) {
                     int finalX = scroller.getFinalX();
-                    //表示每一个屏幕刻度的一半的总秒数，每一个屏幕有6格
+                    isPlayIndex(finalX);
+                    //表示每一个屏幕刻度的一半的总秒数，每一个屏幕有6格   1小时3600秒
                     int sec = 3 * 3600;
                     //滚动的秒数
                     int temsec = (int) Math.rint((double) finalX / (double) timeScale * 3600);
@@ -260,13 +243,54 @@ public class TimeScaleView extends View {
         return super.onTouchEvent(event);
     }
 
+    //是否是可以播放的地址
+    public void isPlayIndex(int finalX) {
+        int index = finalX + timeScale * 3;
+        int i = 0;
+        for (RangeXY r : setIndex) {
+            i++;
+            if (index == r.x || index == r.y) {
+                scrollListener.isIndex(true);
+                break;
+            } else if (index > r.x && index < r.y) {
+                scrollListener.isIndex(true);
+                break;
+            } else {
+                if (i == setIndex.size()) {
+                    scrollListener.isIndex(false);
+                }
+            }
+        }
+    }
+
+    //获得是否是可播放视频
+    public boolean getIsIndexPlay() {
+        int finalX = scroller.getFinalX();
+        int index = finalX + timeScale * 3;
+        int i = 0;
+        for (RangeXY r : setIndex) {
+            i++;
+            if (index == r.x || index == r.y) {
+                return true;
+            } else if (index > r.x && index < r.y) {
+                return true;
+            } else {
+                if (i == setIndex.size()) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+
     @Override
     public void computeScroll() {
-        super.computeScroll();
         if (scroller.computeScrollOffset()) {
             scrollTo(scroller.getCurrX(), scroller.getCurrY());
             invalidate();
         }
+        super.computeScroll();
     }
 
     @Override
@@ -274,10 +298,11 @@ public class TimeScaleView extends View {
         super.onLayout(changed, left, top, right, bottom);
         viewWidth = getWidth();
         viewHeight = getHeight();
-        //每小时的刻度一个屏幕分成6格
+        //每小时的刻度一个屏幕分成6格   540/6 =90         2160/540 4个屏幕 6*4 24个刻度尺
         timeScale = viewWidth / 6;
-        //总的时间刻度距离
+        //总的时间刻度距离      2160
         totalTime = timeScale * 24;
+
     }
 
     @Override
@@ -288,13 +313,19 @@ public class TimeScaleView extends View {
         drawTimeRect(canvas);
         drawLines(canvas);
         drawMidLine(canvas);
+        isDrawTimeRect = true;
     }
 
     //滚动监听类
     public interface OnScrollListener {
-        public void onScroll(int hour, int min, int sec);
 
-        public void onScrollFinish(int hour, int min, int sec);
+        void onScroll(int hour, int min, int sec);
+
+        void onScrollFinish(int hour, int min, int sec);
+
+        //是否支持有这个坐标 回调
+        void isIndex(boolean isFlg);
+
     }
 
     public OnScrollListener getScrollListener() {
@@ -343,6 +374,32 @@ public class TimeScaleView extends View {
             this.eHour = eHour;
             this.eMinute = eMinute;
             this.eSeconds = eSeconds;
+        }
+    }
+
+    public static class RangeXY {
+        int x;
+        int y;
+
+        public int getX() {
+            return x;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public RangeXY(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
     }
 }

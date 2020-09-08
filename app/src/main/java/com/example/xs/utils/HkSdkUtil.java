@@ -201,11 +201,18 @@ public class HkSdkUtil {
     }
 
     //是否有播发文件
-    public static void isPlayFile(int iFindHandle) {
+    public static NET_DVR_FINDDATA_V30 findOneFilePlayInfo(int iFindHandle) {
+        int findNext = 0;
         NET_DVR_FINDDATA_V30 struFindData = new NET_DVR_FINDDATA_V30();
-        HCNetSDK.getInstance().NET_DVR_FindNextFile_V30(iFindHandle, struFindData);
-
-
+        while (findNext != -1) {
+            findNext = HCNetSDK.getInstance().NET_DVR_FindNextFile_V30(iFindHandle, struFindData);
+            if (findNext == HCNetSDK.NET_DVR_FILE_SUCCESS) {
+                return struFindData;
+            } else if (HCNetSDK.NET_DVR_ISFINDING == findNext) {
+                System.out.println("等待查找文件");
+            }
+        }
+        return null;
     }
 
 
