@@ -84,13 +84,14 @@ public class HkSdkUtil {
     }
 
     //设置录像回放时间 年月日 时分秒
-    public static NET_DVR_TIME setRePlayTime(String year, String month, String day, String hour, String minute) {
+    public static NET_DVR_TIME setRePlayTime(String timeStr[], String hour, String minute, String sec) {
         NET_DVR_TIME derTime = new NET_DVR_TIME();
-        derTime.dwYear = Integer.parseInt(year);
-        derTime.dwMonth = Integer.parseInt(month);
-        derTime.dwDay = Integer.parseInt(day);
+        derTime.dwYear = Integer.parseInt(timeStr[0]);
+        derTime.dwMonth = Integer.parseInt(timeStr[1]);
+        derTime.dwDay = Integer.parseInt(timeStr[2]);
         derTime.dwHour = Integer.parseInt(hour);
         derTime.dwMinute = Integer.parseInt(minute);
+        derTime.dwSecond = Integer.parseInt(sec);
         return derTime;
     }
 
@@ -109,8 +110,8 @@ public class HkSdkUtil {
         return para;
     }
 
-    //录像回放api
-    public static int getRePlayByTime(int loginId, NET_DVR_VOD_PARA para) {
+    //录像回放api 获得回放id
+    public static int getRePlayByTimeId(int loginId, NET_DVR_VOD_PARA para) {
         return HCNetSDK.getInstance().NET_DVR_PlayBackByTime_V40(loginId, para);
     }
 
@@ -166,33 +167,37 @@ public class HkSdkUtil {
         tipDialog.show();
         List<TimeScaleView.TimePart> time = new ArrayList<>();
         int findNext = 0;
+        int i = 0;
         NET_DVR_FINDDATA_V30 struFindData = new NET_DVR_FINDDATA_V30();
         String msg;
         while (findNext != -1) {
             findNext = HCNetSDK.getInstance().NET_DVR_FindNextFile_V30(iFindHandle, struFindData);
             if (findNext == HCNetSDK.NET_DVR_FILE_SUCCESS) {
-//                System.out.println("~~~~~Find File===>" + CommonMethod.toValidString(new String(struFindData.sFileName)));
-//                System.out.println("~~~~~File Size===>" + struFindData.dwFileSize);
+                System.out.println("~~~~~Find File===>" + CommonMethod.toValidString(new String(struFindData.sFileName)));
+                System.out.println("~~~~~File Size===>" + struFindData.dwFileSize);
                 System.out.println("~~~~~File Time,from===>" + struFindData.struStartTime.ToString());
                 System.out.println("~~~~~File Time,to===>" + struFindData.struStopTime.ToString());
-                List<Integer> startTime = StrUtil.strSpl(struFindData.struStartTime.ToString());
-                List<Integer> endTime = StrUtil.strSpl(struFindData.struStopTime.ToString());
-                time.add(new TimeScaleView.TimePart(startTime.get(0), startTime.get(1), startTime.get(2),
-                        endTime.get(0), endTime.get(1), endTime.get(2)));
+                if (i >= 1) {
+                    List<Integer> startTime = StrUtil.strSpl(struFindData.struStartTime.ToString());
+                    List<Integer> endTime = StrUtil.strSpl(struFindData.struStopTime.ToString());
+                    time.add(new TimeScaleView.TimePart(startTime.get(0), startTime.get(1), startTime.get(2),
+                            endTime.get(0), endTime.get(1), endTime.get(2)));
+                }
+                i++;
             } else if (HCNetSDK.NET_DVR_FILE_NOFIND == findNext) {
                 System.out.println("No file found");
                 msg = "没有回放视频...";
                 break;
             } else if (HCNetSDK.NET_DVR_NOMOREFILE == findNext) {
                 System.out.println("All files are listed");
-                msg = "All files are listed";
+                msg = "所有文件查找完毕";
                 break;
             } else if (HCNetSDK.NET_DVR_FILE_EXCEPTION == findNext) {
                 System.out.println("Exception in searching");
                 msg = "Exception in searching";
                 break;
             } else if (HCNetSDK.NET_DVR_ISFINDING == findNext) {
-                System.out.println("NET_DVR_ISFINDING");
+                System.out.println("等待查找文件");
             }
         }
         HCNetSDK.getInstance().NET_DVR_FindClose_V30(iFindHandle);
@@ -200,14 +205,18 @@ public class HkSdkUtil {
         return time;
     }
 
-    //是否有播发文件
+    //查找播放播发文件
     public static NET_DVR_FINDDATA_V30 findOneFilePlayInfo(int iFindHandle) {
         int findNext = 0;
+        int i = 0;
         NET_DVR_FINDDATA_V30 struFindData = new NET_DVR_FINDDATA_V30();
         while (findNext != -1) {
             findNext = HCNetSDK.getInstance().NET_DVR_FindNextFile_V30(iFindHandle, struFindData);
             if (findNext == HCNetSDK.NET_DVR_FILE_SUCCESS) {
-                return struFindData;
+                if (i >= 1) {
+                    return struFindData;
+                }
+                i++;
             } else if (HCNetSDK.NET_DVR_ISFINDING == findNext) {
                 System.out.println("等待查找文件");
             }
@@ -215,5 +224,35 @@ public class HkSdkUtil {
         return null;
     }
 
+    /**
+     * 控制录像回放的状态
+     *
+     * @param playbackId 回放id
+     * @param command    执行命令
+     * @return
+     */
+    public static boolean playBackControl(int playbackId, int command) {
+        return HCNetSDK.getInstance().NET_DVR_PlayBackControl_V40(playbackId, command, null, 0, null);
+    }
 
+    /**
+     * 关闭回放
+     *
+     * @param playbackId
+     * @return
+     */
+    public static boolean stopPlayBackControl(int playbackId) {
+        return HCNetSDK.getInstance().NET_DVR_StopPlayBack(playbackId);
+    }
+
+
+    /**
+     * 获得播放进度
+     *
+     * @param rePlayId 回放 id
+     * @return
+     */
+    public static int getPlayBackPos(int rePlayId) {
+        return HCNetSDK.getInstance().NET_DVR_GetPlayBackPos(rePlayId);
+    }
 }
