@@ -41,6 +41,15 @@ public class MsgUtil {
                 .create();
     }
 
+    public static void stopHandlerMsg(final QMUITipDialog tipDialog) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                tipDialog.dismiss();
+            }
+        }, 2000);
+    }
+
     public static void stopHandlerMsg(final QMUITipDialog tipDialog, long delayMillis) {
         new Handler().postDelayed(new Runnable() {
             @Override

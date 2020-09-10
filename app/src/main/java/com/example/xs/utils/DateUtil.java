@@ -71,9 +71,15 @@ public class DateUtil {
         return sdf.format(cal.getTime());
     }
 
-    //获得时分秒
+    //获得时分秒数组
     public static String[] getHMS(String time) {
         String[] strTime = time.split(" ");
         return strTime[1].split(":");
+    }
+
+    //获得时分秒
+    public static String getStrHMS(String time) {
+        String[] strTime = time.split(" ");
+        return strTime[1];
     }
 }

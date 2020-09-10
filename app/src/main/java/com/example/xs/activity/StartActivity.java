@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.example.xs.R;
 import com.example.xs.mvp.model.PlaySurfaceViewInfo;
+import com.example.xs.mvp.model.RePlayTime;
 import com.example.xs.utils.DateUtil;
 import com.example.xs.utils.GenerateId;
 import com.example.xs.utils.GlobalUtil;
@@ -46,6 +47,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Timer;
@@ -110,6 +112,9 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     private TimerTask myTimerTask;
     private Handler mHandler;
     private Runnable mPlayBackPosRunnable;
+    //自动播放下一部回放结束时间
+    private String nextEndTime;
+    private List<RePlayTime> rePlayTimes;
     //回放id
     private int rePlayByTimeId;
 
@@ -234,40 +239,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         Toast.makeText(StartActivity.this, "此段没有播放视频", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    System.out.println("sss-->" + mHostMS.getText());
-                    //获得回放句柄
-                    String[] sDay = mHostMS.getText().toString().split(":");
-                    int iFindHandle = getIFindHandle(sDay, null);
-                    if (iFindHandle < 0) {
-                        return;
-                    }
-                    NET_DVR_FINDDATA_V30 oneFilePlayInfo = HkSdkUtil.findOneFilePlayInfo(iFindHandle);
-                    if (oneFilePlayInfo == null) {
-                        Toast.makeText(StartActivity.this, "没查询到视频", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    System.out.println("~~~~~File Time,from===>" + oneFilePlayInfo.struStartTime.ToString());
-                    System.out.println("~~~~~File Time,to===>" + oneFilePlayInfo.struStopTime.ToString());
-
-                    String[] timeStr = mStartDatePickerTimeEditY.getText().toString().split("/");
-                    NET_DVR_TIME netDvrStartTime = HkSdkUtil.setRePlayTime(timeStr, sDay[0], sDay[1], sDay[2]);
-                    String endTime = oneFilePlayInfo.struStopTime.ToString();
-                    String[] endHmsArr = DateUtil.getHMS(endTime);
-                    NET_DVR_TIME netDvrEndTime = HkSdkUtil.setRePlayTime(timeStr, endHmsArr[0], endHmsArr[1], endHmsArr[2]);
-                    //设置回放参数
-                    NET_DVR_VOD_PARA para = HkSdkUtil.setRePlayParam(netDvrStartTime, netDvrEndTime, playInfo.getPlayTartChan(), playSurfaceView.getHolder().getSurface());
-                    //获得播放ID
-                    rePlayByTimeId = HkSdkUtil.getRePlayByTimeId(GlobalUtil.loginInfo.getLoginId(), para);
-                    //进行播放
-                    if (!HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTART)) {
-                        MsgUtil.showDialogFail(this, "回放失败");
-                        Log.e(TAG, "sdk 回放失败");
-                        return;
-                    }
-                    //获得开始播放日期
-                    String time = mStartDatePickerTimeEditY.getText().toString() + " " + mHostMS.getText().toString();
-                    updateTime(1000, 1000, time);
-                    threadGetPlayBackPos(rePlayByTimeId);
+                    startRePlay(false);
                     rePlayAndStop.setImageResource(R.mipmap.re_stop);
                     isRePlayVideo = true;
                 } else {
@@ -276,6 +248,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         return;
                     }
                     clear();
+                    rePlayAndStop.setImageResource(R.mipmap.re_play);
+                    isRePlayVideo = false;
                 }
                 break;
             case R.id.record:
@@ -367,6 +341,93 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         }
     }
 
+    private void startRePlay(boolean isNext) {
+        QMUITipDialog tipDialog = MsgUtil.tipDialog(this, "视频加载中...", QMUITipDialog.Builder.ICON_TYPE_LOADING);
+        tipDialog.show();
+        int iFindHandle;
+        String[] sDayArr;
+        String[] endHmsArr;
+        NET_DVR_FINDDATA_V30 oneFilePlayInfo;
+        NET_DVR_VOD_PARA para;
+        String[] timeStr = mStartDatePickerTimeEditY.getText().toString().split("/");
+        String mHostTime;
+        if (!isNext) {
+            mHostTime = mHostMS.getText().toString();
+            sDayArr = mHostTime.split(":");
+            //获得回放句柄
+            iFindHandle = getIFindHandle(sDayArr, null);
+            if (iFindHandle < 0) {
+                tipDialog.dismiss();
+                Toast.makeText(StartActivity.this, "获得播放句柄失败", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            oneFilePlayInfo = HkSdkUtil.findOneFilePlayInfo(iFindHandle);
+            if (oneFilePlayInfo == null) {
+                tipDialog.dismiss();
+                Toast.makeText(StartActivity.this, "没查询到视频", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            NET_DVR_TIME netDvrStartTime = HkSdkUtil.setRePlayTime(timeStr, sDayArr[0], sDayArr[1], sDayArr[2]);
+            String endTime = oneFilePlayInfo.struStopTime.ToString();
+            endHmsArr = DateUtil.getHMS(endTime);
+            NET_DVR_TIME netDvrEndTime = HkSdkUtil.setRePlayTime(timeStr, endHmsArr[0], endHmsArr[1], endHmsArr[2]);
+            //设置回放参数
+            para = HkSdkUtil.setRePlayParam(netDvrStartTime, netDvrEndTime, playInfo.getPlayTartChan(), playSurfaceView.getHolder().getSurface());
+            nextEndTime = oneFilePlayInfo.struStopTime.ToString();
+        } else {
+            RePlayTime rePlayTime = nextRePlayTime(nextEndTime);
+            if (rePlayTime == null) {
+                Toast.makeText(StartActivity.this, "播放列表异常", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            sDayArr = DateUtil.getHMS(rePlayTime.getStartTime());
+            endHmsArr = DateUtil.getHMS(rePlayTime.getEndTime());
+            NET_DVR_TIME netDvrStartTime = HkSdkUtil.setRePlayTime(timeStr, sDayArr[0], sDayArr[1], sDayArr[2]);
+            NET_DVR_TIME netDvrEndTime = HkSdkUtil.setRePlayTime(timeStr, endHmsArr[0], endHmsArr[1], endHmsArr[2]);
+            //设置回放参数
+            para = HkSdkUtil.setRePlayParam(netDvrStartTime, netDvrEndTime, playInfo.getPlayTartChan(), playSurfaceView.getHolder().getSurface());
+            nextEndTime = rePlayTime.getEndTime();
+            mHostTime = DateUtil.getStrHMS(rePlayTime.getStartTime());
+        }
+        //获得播放ID
+        rePlayByTimeId = HkSdkUtil.getRePlayByTimeId(GlobalUtil.loginInfo.getLoginId(), para);
+        //进行播放
+        if (!HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTART)) {
+            tipDialog.dismiss();
+            MsgUtil.showDialogFail(this, "回放失败");
+            Log.e(TAG, "sdk 回放失败");
+            return;
+        }
+        //获得开始播放日期
+        String time = mStartDatePickerTimeEditY.getText().toString() + " " + mHostTime;
+        updateTime(1000, 1000, time);
+        threadGetPlayBackPos(rePlayByTimeId, rePlayCall);
+        MsgUtil.stopHandlerMsg(tipDialog);
+    }
+
+    //获得下一个播放的rePlay对象
+    private RePlayTime nextRePlayTime(String nextEndTime) {
+        for (int i = 0; i < rePlayTimes.size(); i++) {
+            RePlayTime rePlayTime = rePlayTimes.get(i);
+            if (rePlayTime.getEndTime().equals(nextEndTime)) {
+                return rePlayTimes.get(i + 1);
+            }
+        }
+        return null;
+    }
+
+
+    //回放next
+    RePlayCall rePlayCall = new RePlayCall() {
+        @Override
+        public void playEndCall() {
+            clear();
+            HkSdkUtil.stopPlayBackControl(rePlayByTimeId);
+            //自动播放
+            startRePlay(true);
+        }
+    };
+
     private void clear() {
         //销毁线程
         if (mHandler != null) {
@@ -387,25 +448,29 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         });
     }
 
-    public void threadGetPlayBackPos(int rePlayId) {
+    public void threadGetPlayBackPos(int rePlayId, RePlayCall rePlayCall) {
         HandlerThread thread = new HandlerThread("handlerThread");
         thread.start();
         mHandler = new Handler(thread.getLooper());
-        mPlayBackPosRunnable = getPlayBackPosRunnable(rePlayId);
+        mPlayBackPosRunnable = getPlayBackPosRunnable(rePlayId, rePlayCall);
         mHandler.post(mPlayBackPosRunnable);
     }
 
-    public Runnable getPlayBackPosRunnable(final int rePlayId) {
+    public Runnable getPlayBackPosRunnable(final int rePlayId, final RePlayCall rePlayCall) {
         return new Runnable() {
             @Override
             public void run() {
-                int nProgress = -1;
+                int nProgress;
                 while (true) {
                     nProgress = HkSdkUtil.getPlayBackPos(rePlayId);
                     System.out.println("NET_DVR_GetPlayBackPos:" + nProgress);
-                    if (nProgress < 0 || nProgress >= 100) {
-                        clear();
-                        Toast.makeText(StartActivity.this, "回放视频结束", Toast.LENGTH_SHORT).show();
+                    if (nProgress < 0) {
+                        System.out.println("回放视频 被终止");
+                        Toast.makeText(StartActivity.this, "回放视频被终止", Toast.LENGTH_SHORT).show();
+                        break;
+                    } else if (nProgress >= 100) {
+                        System.out.println("回放视频结束");
+                        rePlayCall.playEndCall();
                         break;
                     }
                     try {
@@ -482,12 +547,14 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         if (iFindHandle < 0) {
             return iFindHandle;
         }
+        //保存所有可以观看的文件信息
+        rePlayTimes = new ArrayList<>();
         //初始化数据 查找文件时间片段
-        //        //添加时间片段
-        List<TimeScaleView.TimePart> timePart = HkSdkUtil.getTimePart(iFindHandle, context);
+        List<TimeScaleView.TimePart> timePart = HkSdkUtil.getTimePart(iFindHandle, context, rePlayTimes);
         if (timePart.isEmpty()) {
             return -2;
         }
+        //添加时间片段
         mTvMain.addTimePart(timePart);
         String msg = "共" + timePart.size() + "个录像";
         mVideoNumText.setText(msg);
@@ -909,4 +976,9 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         Log.i(TAG, "onDestroy");
     }
 
+    //播放回调完成接口
+    public interface RePlayCall {
+        void playEndCall();
+
+    }
 }
