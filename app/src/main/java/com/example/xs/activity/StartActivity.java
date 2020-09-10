@@ -381,6 +381,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                 return;
             }
             sDayArr = DateUtil.getHMS(rePlayTime.getStartTime());
+            //刻度尺跳转到指定时间
+            mTvMain.setIndexHostTime(sDayArr[0], sDayArr[1], sDayArr[2]);
             endHmsArr = DateUtil.getHMS(rePlayTime.getEndTime());
             NET_DVR_TIME netDvrStartTime = HkSdkUtil.setRePlayTime(timeStr, sDayArr[0], sDayArr[1], sDayArr[2]);
             NET_DVR_TIME netDvrEndTime = HkSdkUtil.setRePlayTime(timeStr, endHmsArr[0], endHmsArr[1], endHmsArr[2]);

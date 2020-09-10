@@ -88,10 +88,20 @@ public class TimeScaleView extends View {
         super(context, attrs, defStyleAttr);
     }
 
+    //设置当前时间
     public void setCurrentHostTime(int host) {
         //计算时
         int i = timeScale * (host - 3);
         scroller.startScroll(i, 0, 0, 0);
+    }
+
+    //调到一个指定时间
+    public void setIndexHostTime(String sHour, String sMinute, String sSeconds) {
+        //计算时
+        int seconds1 = Integer.parseInt(sHour) * 3600 + Integer.parseInt(sMinute) * 60 + Integer.parseInt(sSeconds);
+        int x1 = seconds1 * timeScale / 3600;
+        scroller.startScroll(x1 - timeScale * 3, scroller.getFinalY(), 0, 0);
+        postInvalidate();
     }
 
     public void startCurrentHostTime(int x) {
