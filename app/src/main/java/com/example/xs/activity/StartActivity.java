@@ -78,7 +78,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     private boolean isRePlayIndex = false;
     //是否播放到最后一段了
     private boolean isNotReplay = false;
-
+    //跳转的位置
+    private int jmpIndex;
     //播放句柄id
     private int playId = -1;
     //绝对路径
@@ -244,6 +245,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         Toast.makeText(StartActivity.this, "此段没有播放视频", Toast.LENGTH_SHORT).show();
                         return;
                     }
+                    //获得跳转index
+                    jmpIndex = mTvMain.getJmpIndex();
                     startRePlay(false);
                     rePlayAndStop.setImageResource(R.mipmap.re_stop);
                     isRePlayVideo = true;
@@ -525,7 +528,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         mHostMS.setText(DateUtil.formatDate(calendar.getTime()));
                     }
                 });
-                if (i == 40) {
+                if (i == jmpIndex) {
                     mTvMain.startCurrentHostTime(1);
                     i = 0;
                 }

@@ -84,6 +84,12 @@ public class TimeScaleView extends View {
 
     }
 
+    //获得跳转的index标识,必须先初始化完毕后才调用
+    public int getJmpIndex() {
+        return 3600 / timeScale;
+    }
+
+
     public TimeScaleView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
@@ -205,7 +211,6 @@ public class TimeScaleView extends View {
                 float dataX = lastX - x;
                 int finalx = scroller.getFinalX();
                 //右边
-
                 if (dataX > 0) {
                     if (dataX < 0) {
                         if (finalx < -viewWidth / 2) {
