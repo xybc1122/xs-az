@@ -76,6 +76,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     private boolean isTvMan = false;
     //回放播放时间区域是否可以播放
     private boolean isRePlayIndex = false;
+    //是否播放到最后一段了
+    private boolean isNotReplay = false;
 
     //播放句柄id
     private int playId = -1;
@@ -107,6 +109,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     private TextView mNotVideoText;
     //时分秒显示
     private TextView mHostMS;
+    //没有播放视频时显示
+    private TextView mNotReplayText;
     //时间定时器
     private Timer myTimer;
     private TimerTask myTimerTask;
@@ -171,6 +175,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         mNotVideoText = findViewById(R.id.not_video_text);
         rePlayAndStop = findViewById(R.id.re_play_and_stop);
         mHostMS = findViewById(R.id.host_m_s);
+        mNotReplayText = findViewById(R.id.not_replay);
         rePlayAndStop.setVisibility(View.GONE);
         mTvMain = findViewById(R.id.tv_main);
         mTvMain.setVisibility(View.GONE);
@@ -247,6 +252,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         MsgUtil.showDialogFail(this, "回放关闭失败");
                         return;
                     }
+                    Toast.makeText(StartActivity.this, "回放关闭", Toast.LENGTH_SHORT).show();
                     clear();
                     rePlayAndStop.setImageResource(R.mipmap.re_play);
                     isRePlayVideo = false;
@@ -377,7 +383,20 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         } else {
             RePlayTime rePlayTime = nextRePlayTime(nextEndTime);
             if (rePlayTime == null) {
-                Toast.makeText(StartActivity.this, "播放列表异常", Toast.LENGTH_SHORT).show();
+                tipDialog.dismiss();
+                if (!isNotReplay) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mNotReplayText.setVisibility(View.VISIBLE);
+                            mHostMS.setVisibility(View.INVISIBLE);
+                            isNotReplay = true;
+                        }
+                    });
+                    mNotReplayText.setVisibility(View.VISIBLE);
+                    mHostMS.setVisibility(View.INVISIBLE);
+                    isNotReplay = true;
+                }
                 return;
             }
             sDayArr = DateUtil.getHMS(rePlayTime.getStartTime());
@@ -424,12 +443,18 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         @Override
         public void playEndCall() {
             clear();
-            HkSdkUtil.stopPlayBackControl(rePlayByTimeId);
+            stopPlayBack(rePlayByTimeId);
             //自动播放
             startRePlay(true);
         }
     };
 
+    //关闭回放
+    private void stopPlayBack(int rePlayByTimeId) {
+        HkSdkUtil.stopPlayBackControl(rePlayByTimeId);
+    }
+
+    //销毁
     private void clear() {
         //销毁线程
         if (mHandler != null) {
@@ -458,6 +483,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         mHandler.post(mPlayBackPosRunnable);
     }
 
+    //回放判断是否结束线程
     public Runnable getPlayBackPosRunnable(final int rePlayId, final RePlayCall rePlayCall) {
         return new Runnable() {
             @Override
@@ -467,8 +493,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                     nProgress = HkSdkUtil.getPlayBackPos(rePlayId);
                     System.out.println("NET_DVR_GetPlayBackPos:" + nProgress);
                     if (nProgress < 0) {
-                        System.out.println("回放视频 被终止");
-                        Toast.makeText(StartActivity.this, "回放视频被终止", Toast.LENGTH_SHORT).show();
+                        System.out.println("回放视频被终止");
                         break;
                     } else if (nProgress >= 100) {
                         System.out.println("回放视频结束");
@@ -516,6 +541,10 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     public void onScroll(int hour, int min, int sec) {
         //滑动时监听
         Log.d("--onScroll--", "hour " + hour + " min " + min + " sec " + sec);
+        if (isNotReplay) {
+            mHostMS.setVisibility(View.VISIBLE);
+            mNotReplayText.setVisibility(View.INVISIBLE);
+        }
         mHostMS.setText(StrUtil.formatString(hour, min, sec));
     }
 
@@ -523,6 +552,15 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     public void onScrollFinish(int hour, int min, int sec) {
         //滑动抬起监听
         Log.d("--onScrollFinish--", "hour " + hour + " min " + min + " sec " + sec);
+        //判断已经开始播放
+        if (isRePlayVideo) {
+            //判断是否在正确的索引判断
+            if (isRePlayIndex) {
+                clear();
+                stopPlayBack(rePlayByTimeId);
+                startRePlay(false);
+            }
+        }
     }
 
     @Override

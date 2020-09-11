@@ -167,6 +167,17 @@
         android:textColor="@color/qmui_config_color_white" />
 
     <TextView
+        android:id="@+id/not_replay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_main"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="@dimen/dp_10"
+        android:text="没找到可回放视频"
+        android:textColor="@color/qmui_config_color_white"
+        android:visibility="gone" />
+
+    <TextView
         android:id="@+id/not_video_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
