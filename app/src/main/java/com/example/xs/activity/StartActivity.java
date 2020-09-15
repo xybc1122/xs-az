@@ -94,6 +94,11 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     private ImageButton mScreenshot;
     //录制
     private ImageButton mRecord;
+
+    //回放 声音控制
+    private ImageButton mRePlayVoiceAndClose;
+    //回放 声音控制 切换
+    private boolean mIsRePlayVoiceAndClose = false;
     //视频播放控件
     private PlaySurfaceView playSurfaceView;
     //播放信息
@@ -172,6 +177,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     }
 
     private void findViews() {
+        mRePlayVoiceAndClose = findViewById(R.id.replay_voice_and_close);
         mVideoNumText = findViewById(R.id.video_num_text);
         mNotVideoText = findViewById(R.id.not_video_text);
         rePlayAndStop = findViewById(R.id.re_play_and_stop);
@@ -209,6 +215,20 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            //回放声音控制
+            case R.id.replay_voice_and_close:
+                if (!mIsRePlayVoiceAndClose) {
+                    //关闭声音
+                    HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTOPAUDIO);
+                    mRePlayVoiceAndClose.setImageResource(R.mipmap.replay_voice_close);
+                    mIsRePlayVoiceAndClose = true;
+                    return;
+                }
+                //打开声音
+                HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTARTAUDIO);
+                mRePlayVoiceAndClose.setImageResource(R.mipmap.replay_voice);
+                mIsRePlayVoiceAndClose = false;
+                break;
             case R.id.console:
                 if (!isConsole) {
                     mRelativeLayout.setVisibility(View.VISIBLE);
@@ -245,6 +265,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         Toast.makeText(StartActivity.this, "此段没有播放视频", Toast.LENGTH_SHORT).show();
                         return;
                     }
+                    mRePlayVoiceAndClose.setVisibility(View.INVISIBLE);
                     //获得跳转index
                     jmpIndex = mTvMain.getJmpIndex();
                     startRePlay(false);
@@ -255,6 +276,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         MsgUtil.showDialogFail(this, "回放关闭失败");
                         return;
                     }
+                    mRePlayVoiceAndClose.setVisibility(View.GONE);
                     Toast.makeText(StartActivity.this, "回放关闭", Toast.LENGTH_SHORT).show();
                     clear();
                     rePlayAndStop.setImageResource(R.mipmap.re_play);
@@ -781,6 +803,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
 
     @SuppressLint("ClickableViewAccessibility")
     private void setListeners() {
+        mRePlayVoiceAndClose.setOnClickListener(this);
         mPlayAndStop.setOnClickListener(this);
         mLogOutBt.setOnClickListener(this);
         mScreenshot.setOnClickListener(this);
