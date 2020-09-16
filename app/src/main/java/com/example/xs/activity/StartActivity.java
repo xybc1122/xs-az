@@ -156,9 +156,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
 
     private ImageButton reset = null;
 
-    private ImageButton ytZoomIn = null;
-
-    private ImageButton ytZoomOut = null;
 
     private QMUITopBar mTopBar;
 
@@ -207,10 +204,21 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         down = findViewById(R.id.down);
         mPlayAndStop = findViewById(R.id.play_and_stop);
         mLogOutBt = findViewById(R.id.login_out);
-        ytZoomIn = findViewById(R.id.zoom_in);
-        ytZoomOut = findViewById(R.id.zoom_out);
 
     }
+
+    public void closeRePlay() {
+        if (!HkSdkUtil.stopPlayBackControl(rePlayByTimeId)) {
+            MsgUtil.showDialogFail(this, "回放关闭失败");
+            return;
+        }
+        mRePlayVoiceAndClose.setVisibility(View.GONE);
+        Toast.makeText(StartActivity.this, "回放关闭", Toast.LENGTH_SHORT).show();
+        clear();
+        rePlayAndStop.setImageResource(R.mipmap.re_play);
+        isRePlayVideo = false;
+    }
+
 
     @Override
     public void onClick(View v) {
@@ -219,13 +227,20 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
             case R.id.replay_voice_and_close:
                 if (!mIsRePlayVoiceAndClose) {
                     //关闭声音
-                    HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTOPAUDIO);
+                    if (!HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTOPAUDIO)) {
+                        System.out.println("xxxx=>"+MsgUtil.errMsg());
+                        MsgUtil.showDialogFail(this, "关闭失败");
+                        return;
+                    }
                     mRePlayVoiceAndClose.setImageResource(R.mipmap.replay_voice_close);
                     mIsRePlayVoiceAndClose = true;
                     return;
                 }
                 //打开声音
-                HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTARTAUDIO);
+                if (!HkSdkUtil.playBackControl(rePlayByTimeId, PlaybackControlCommand.NET_DVR_PLAYSTARTAUDIO)) {
+                    MsgUtil.showDialogFail(this, "打开失败");
+                    return;
+                }
                 mRePlayVoiceAndClose.setImageResource(R.mipmap.replay_voice);
                 mIsRePlayVoiceAndClose = false;
                 break;
@@ -245,7 +260,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                     MsgUtil.showDialogFail(this, "请先停止实施预览...");
                     return;
                 }
-                //在回放中
+                //点击回放显示按钮中
                 if (!isRePlay) {
                     //这是当前时间
                     mStartDatePickerTimeEditY.setText(DateUtil.getCalendarNowZeroY());
@@ -257,6 +272,11 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                     rePlayChanged(false);
                 } else {
                     rePlayChanged(true);
+                    //如果回放播放按钮切换中
+                    if (isRePlayVideo) {
+                        closeRePlay();
+                        mHostMS.setVisibility(View.INVISIBLE);
+                    }
                 }
                 break;
             case R.id.re_play_and_stop:
@@ -265,22 +285,14 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                         Toast.makeText(StartActivity.this, "此段没有播放视频", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    mRePlayVoiceAndClose.setVisibility(View.INVISIBLE);
+                    mRePlayVoiceAndClose.setVisibility(View.VISIBLE);
                     //获得跳转index
                     jmpIndex = mTvMain.getJmpIndex();
                     startRePlay(false);
                     rePlayAndStop.setImageResource(R.mipmap.re_stop);
                     isRePlayVideo = true;
                 } else {
-                    if (!HkSdkUtil.stopPlayBackControl(rePlayByTimeId)) {
-                        MsgUtil.showDialogFail(this, "回放关闭失败");
-                        return;
-                    }
-                    mRePlayVoiceAndClose.setVisibility(View.GONE);
-                    Toast.makeText(StartActivity.this, "回放关闭", Toast.LENGTH_SHORT).show();
-                    clear();
-                    rePlayAndStop.setImageResource(R.mipmap.re_play);
-                    isRePlayVideo = false;
+                    closeRePlay();
                 }
                 break;
             case R.id.record:
@@ -413,14 +425,14 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            //播放完毕
                             mNotReplayText.setVisibility(View.VISIBLE);
                             mHostMS.setVisibility(View.INVISIBLE);
                             isNotReplay = true;
+                            rePlayAndStop.setImageResource(R.mipmap.re_play);
+                            isRePlayVideo = false;
                         }
                     });
-                    mNotReplayText.setVisibility(View.VISIBLE);
-                    mHostMS.setVisibility(View.INVISIBLE);
-                    isNotReplay = true;
                 }
                 return;
             }
@@ -594,6 +606,8 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         if (isRePlayVideo) {
             //判断是否是可以播放的视频
             if (!isFlg) {
+                clear();
+                stopPlayBack(rePlayByTimeId);
                 Toast.makeText(StartActivity.this, "此段没有播放视频", Toast.LENGTH_SHORT).show();
             }
         }
@@ -655,6 +669,7 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
             isRePlay = true;
         } else {
             rePlayAndStop.setVisibility(View.GONE);
+            mRePlayVoiceAndClose.setVisibility(View.GONE);
             mReplay.setImageResource(R.mipmap.replay);
             mStartDatePickerTimeEditY.setVisibility(View.GONE);
             mTvMain.setVisibility(View.GONE);
@@ -668,16 +683,12 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
     public void linearChanged(boolean isChang) {
         if (isChang) {
             mScreenshot.setVisibility(View.GONE);
-            ytZoomIn.setVisibility(View.GONE);
-            ytZoomOut.setVisibility(View.GONE);
             mRecord.setVisibility(View.GONE);
             mConsole.setVisibility(View.GONE);
             mRelativeLayout.setVisibility(View.GONE);
         } else {
             mConsole.setVisibility(View.VISIBLE);
             mScreenshot.setVisibility(View.VISIBLE);
-            ytZoomIn.setVisibility(View.VISIBLE);
-            ytZoomOut.setVisibility(View.VISIBLE);
             mRecord.setVisibility(View.VISIBLE);
             mConsole.setImageResource(R.mipmap.console);
             isConsole = false;
@@ -823,23 +834,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
             }
         });
 
-
-        ytZoomIn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.add_down, R.mipmap.add, ytZoomIn);
-                return true;
-            }
-        });
-
-        ytZoomOut.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                setCommand(event, PTZCommand.ZOOM_OUT, R.mipmap.del_down, R.mipmap.del, ytZoomOut);
-                return true;
-            }
-        });
-
         left.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -947,21 +941,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         }, mYear, mMonth, mDay);
         datePickerDialog.setTitle("时间选择");
         datePickerDialog.show();
-    }
-
-
-    private void setCommand(MotionEvent event, int command) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                PTZControl(command, 0);
-                break;
-            case MotionEvent.ACTION_UP:
-                if (!isCommand) {
-                    return;
-                }
-                PTZControl(command, 1);
-                break;
-        }
     }
 
 

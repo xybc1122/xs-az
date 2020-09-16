@@ -190,7 +190,6 @@ public class TimeScaleView extends View {
         //滚动时的监听
         if (scrollListener != null) {
             scrollListener.onScroll(thour, tmin, tsec);
-            isPlayIndex(finalX);
         }
         //画指针
         canvas.drawLine(timeScale * 3 + finalX, 0,
