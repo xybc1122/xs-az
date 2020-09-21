@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
@@ -90,6 +91,10 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
         leftImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (GlobalUtil.loginInfo == null || GlobalUtil.loginInfo.getLoginId() < 0) {
+                    Toast.makeText(getContext(), "请先到<我的>连接设备", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (!isPlay) {
                     MsgUtil.showDialogFail(getActivity(), "请先点击右上角播放按钮");
                     return;
@@ -111,6 +116,10 @@ public class VideoListFragment extends Fragment implements View.OnClickListener 
         rightImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (GlobalUtil.loginInfo == null || GlobalUtil.loginInfo.getLoginId() < 0) {
+                    Toast.makeText(getContext(), "请先到<我的>连接设备", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 rightImageButton.setEnabled(false);
                 QMUITipDialog tipDialog = ThreadUtil.loadThread(getActivity(), "视频载入中...", new Runnable() {
                     @Override

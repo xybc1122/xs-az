@@ -35,17 +35,6 @@
             android:src="@mipmap/play" />
 
         <ImageButton
-            android:id="@+id/login_out"
-            android:layout_width="@dimen/dp_35"
-            android:layout_height="@dimen/dp_35"
-            android:layout_gravity="center"
-            android:layout_marginRight="@dimen/dp_6"
-            android:clickable="true"
-            android:gravity="center"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/log_out" />
-
-        <ImageButton
             android:id="@+id/console"
             android:layout_width="@dimen/dp_35"
             android:layout_height="@dimen/dp_35"

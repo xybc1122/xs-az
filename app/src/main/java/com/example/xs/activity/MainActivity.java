@@ -3,12 +3,15 @@ package com.example.xs.activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.xs.R;
+import com.example.xs.fragment.MeFragment;
 import com.example.xs.fragment.TwoFragment;
 import com.example.xs.fragment.VideoListFragment;
+import com.example.xs.utils.HkSdkUtil;
 import com.hjm.bottomtabbar.BottomTabBar;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
@@ -20,15 +23,18 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        if (!HkSdkUtil.initSdk()) {
+            Toast.makeText(MainActivity.this, "HK 设备初始化失败", Toast.LENGTH_SHORT).show();
+        }
         mBottomBar = (BottomTabBar) findViewById(R.id.bottom_tab_bar);
         mBottomBar.init(getSupportFragmentManager(), 720, 1280)
 //                .setImgSize(70, 70)
 //                .setFontSize(14)
 //                .setTabPadding(5, 0, 5)
 //                .setChangeColor(Color.parseColor("#FF00F0"),Color.parseColor("#CCCCCC"))
-                .addTabItem("实时预览", R.mipmap.video_red, R.mipmap.video, VideoListFragment.class)
+                .addTabItem("实时预览", R.mipmap.video_blue, R.mipmap.video, VideoListFragment.class)
                 .addTabItem("软件操作", R.mipmap.sorcket_red, R.mipmap.socket, TwoFragment.class)
+                .addTabItem("我的", R.mipmap.me_blue, R.mipmap.me, MeFragment.class)
 //                .isShowDivider(true)
 //                .setDividerColor(Color.parseColor("#FF0000"))
 //                .setTabBarBackgroundColor(Color.parseColor("#00FF0000"))

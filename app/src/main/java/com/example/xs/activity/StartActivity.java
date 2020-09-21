@@ -42,8 +42,6 @@ import com.hikvision.netsdk.PTZCommand;
 import com.hikvision.netsdk.PlaybackControlCommand;
 import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
 import com.qmuiteam.qmui.widget.QMUITopBar;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.io.File;
@@ -57,7 +55,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
 
     private final String TAG = StartActivity.class.getName();
 
-    private ImageButton mLogOutBt = null;
 
     private ImageButton mPlayAndStop = null;
     //播放按钮切换控制
@@ -203,7 +200,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         up = findViewById(R.id.up);
         down = findViewById(R.id.down);
         mPlayAndStop = findViewById(R.id.play_and_stop);
-        mLogOutBt = findViewById(R.id.login_out);
 
     }
 
@@ -368,9 +364,6 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
                     linearChanged(true);
                 }
                 MsgUtil.stopHandlerMsg(tipDialog, 2000);
-                break;
-            case R.id.login_out:
-                showMessagePositiveDialog();
                 break;
             case R.id.qmui_topbar_item_left_back:
                 //如果播放中被返回 必须要关闭不然会一直重连
@@ -773,50 +766,10 @@ public class StartActivity extends Activity implements View.OnClickListener, Tim
         mTopBar.setTitle("通道1").setTextColor(getResources().getColor(R.color.qmui_config_color_white));
     }
 
-    private void showMessagePositiveDialog() {
-        new QMUIDialog.MessageDialogBuilder(this)
-                .setTitle("注销设备")
-                .setMessage("确定注销吗")
-                .addAction("取消", new QMUIDialogAction.ActionListener() {
-                    @Override
-                    public void onClick(QMUIDialog dialog, int index) {
-                        dialog.dismiss();
-                    }
-                })
-                .addAction(0, "确定", QMUIDialogAction.ACTION_PROP_POSITIVE, new QMUIDialogAction.ActionListener() {
-                    @Override
-                    public void onClick(QMUIDialog dialog, int index) {
-                        dialog.dismiss();
-                        LogOut();
-                    }
-                })
-                .create().show();
-
-    }
-
-    //    注销
-    private void LogOut() {
-        final QMUITipDialog tip;
-        boolean isLogOut = HkSdkUtil.HkLogOut(GlobalUtil.loginInfo.getLoginId());
-        if (!isLogOut) {
-            tip = MsgUtil.tipDialog(this, "注销失败", QMUITipDialog.Builder.ICON_TYPE_FAIL);
-            tip.show();
-            MsgUtil.stopHandlerMsg(tip, 2000);
-        }
-        if (isLogOut) {
-            GlobalUtil.loginInfo = null;
-            Intent intent = new Intent(StartActivity.this, LoginActivity.class);
-            this.finish();
-            startActivity(intent);
-            //注销成功
-        }
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     private void setListeners() {
         mRePlayVoiceAndClose.setOnClickListener(this);
         mPlayAndStop.setOnClickListener(this);
-        mLogOutBt.setOnClickListener(this);
         mScreenshot.setOnClickListener(this);
         mRecord.setOnClickListener(this);
         mReplay.setOnClickListener(this);
